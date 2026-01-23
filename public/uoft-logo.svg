@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120">
+  <!-- Shield Background -->
+  <path d="M50 115C20 95 10 65 10 25L50 5L90 25C90 65 80 95 50 115Z" fill="#002A5C" stroke="#fff" stroke-width="2"/>
+  
+  <!-- Chief (Top part) -->
+  <path d="M12 26L88 26" stroke="white" stroke-width="2" />
+  
+  <!-- Stylized Symbols (Crown/Book abstraction) -->
+  <rect x="35" y="40" width="30" height="25" fill="white" rx="2" />
+  <path d="M35 52L65 52" stroke="#002A5C" stroke-width="2" />
+  
+  <rect x="30" y="75" width="40" height="5" fill="white" />
+  <rect x="35" y="85" width="30" height="5" fill="white" />
+</svg>
