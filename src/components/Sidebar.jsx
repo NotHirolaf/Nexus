@@ -21,7 +21,7 @@ export default function Sidebar() {
                 {/* Brand */}
                 <div className="p-6 flex items-center gap-3 border-b border-white/10">
                     <img
-                        src="/uoft-logo.svg"
+                        src="/uoft-logo.png"
                         alt="UofT Logo"
                         className="w-10 h-10 object-contain drop-shadow-md"
                     />
