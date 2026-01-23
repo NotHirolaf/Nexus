@@ -1,4 +1,5 @@
 import React from 'react';
+import { useUser } from '../context/UserContext';
 import { Clock, Book, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
 
 const StatCard = ({ title, value, subtext, icon: Icon, colorClass }) => (
@@ -25,13 +26,14 @@ const TaskItem = ({ title, due, priority }) => (
 );
 
 export default function Dashboard() {
+    const { user } = useUser();
     return (
         <div className="p-2 md:p-6 space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-                        Welcome back, Student
+                        Welcome back, {user?.name || 'Student'}
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Here's what's happening today.</p>
                 </div>

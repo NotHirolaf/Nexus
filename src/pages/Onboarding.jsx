@@ -8,6 +8,8 @@ export default function Onboarding() {
     const { theme } = useTheme();
     const [name, setName] = useState('');
     const [university, setUniversity] = useState('');
+    const [credits, setCredits] = useState('');
+    const [courses, setCourses] = useState('');
     const [step, setStep] = useState(1);
 
     const handleSubmit = (e) => {
@@ -15,7 +17,12 @@ export default function Onboarding() {
         if (step === 1 && name.trim()) {
             setStep(2);
         } else if (step === 2 && university.trim()) {
-            saveUser(name, university);
+            setStep(3);
+        } else if (step === 3 && credits.trim()) {
+            setStep(4);
+        } else if (step === 4 && courses.trim()) {
+            const courseList = courses.split(',').map(c => c.trim()).filter(Boolean);
+            saveUser(name, university, parseFloat(credits) || 0, courseList);
         }
     };
 
@@ -51,6 +58,7 @@ export default function Onboarding() {
                     </p>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Step 1: Name */}
                         <div className={`transition-all duration-300 ${step === 1 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full hidden'}`}>
                             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
                                 }`}>What should we call you?</label>
@@ -67,6 +75,7 @@ export default function Onboarding() {
                             />
                         </div>
 
+                        {/* Step 2: University */}
                         <div className={`transition-all duration-300 ${step === 2 ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full hidden'}`}>
                             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
                                 }`}>Which university do you attend?</label>
@@ -82,23 +91,60 @@ export default function Onboarding() {
                             />
                         </div>
 
+                        {/* Step 3: Credits */}
+                        <div className={`transition-all duration-300 ${step === 3 ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full hidden'}`}>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
+                                }`}>Current Credits Earned</label>
+                            <input
+                                type="number"
+                                value={credits}
+                                onChange={(e) => setCredits(e.target.value)}
+                                className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
+                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                    }`}
+                                placeholder="e.g. 12.5"
+                                min="0"
+                                step="0.5"
+                            />
+                        </div>
+
+                        {/* Step 4: Courses */}
+                        <div className={`transition-all duration-300 ${step === 4 ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full hidden'}`}>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
+                                }`}>Current Courses (comma separated)</label>
+                            <input
+                                type="text"
+                                value={courses}
+                                onChange={(e) => setCourses(e.target.value)}
+                                className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
+                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                    }`}
+                                placeholder="e.g. CS101, MAT137, PSY100"
+                            />
+                        </div>
+
                         <button
                             type="submit"
-                            disabled={step === 1 ? !name.trim() : !university.trim()}
+                            disabled={
+                                (step === 1 && !name.trim()) ||
+                                (step === 2 && !university.trim()) ||
+                                (step === 3 && !credits.trim()) ||
+                                (step === 4 && !courses.trim())
+                            }
                             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                         >
-                            {step === 1 ? 'Continue' : 'Get Started'} <ArrowRight className="w-5 h-5" />
+                            {step === 4 ? 'Get Started' : 'Continue'} <ArrowRight className="w-5 h-5" />
                         </button>
 
                         <div className="flex justify-center gap-2 mt-4">
-                            <div className={`w-2 h-2 rounded-full transition-colors ${step === 1
-                                    ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
-                                    : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
-                                }`}></div>
-                            <div className={`w-2 h-2 rounded-full transition-colors ${step === 2
-                                    ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
-                                    : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
-                                }`}></div>
+                            {[1, 2, 3, 4].map((s) => (
+                                <div key={s} className={`w-2 h-2 rounded-full transition-colors ${step >= s
+                                        ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
+                                        : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
+                                    }`}></div>
+                            ))}
                         </div>
                     </form>
                 </div>

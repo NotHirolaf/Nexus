@@ -2,10 +2,12 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Calendar, Calculator, GraduationCap, CheckSquare, Sun, Moon, BookOpen } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 import { cn } from '../lib/utils';
 
 export default function Sidebar() {
     const { theme, toggleTheme } = useTheme();
+    const { user } = useUser();
 
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -26,7 +28,7 @@ export default function Sidebar() {
                         className="w-10 h-10 object-contain drop-shadow-md"
                     />
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider leading-none">University of Toronto</span>
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider leading-none truncate max-w-[140px]">{user?.university || 'University'}</span>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#002A5C] to-[#2B548A] dark:from-sky-300 dark:to-white">
                             Nexus
                         </span>
