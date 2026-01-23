@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { useTheme } from '../context/ThemeContext';
-import { ArrowRight, BookOpen } from 'lucide-react';
+import { ArrowRight, BookOpen, Plus, X } from 'lucide-react';
 
 export default function Onboarding() {
     const { saveUser } = useUser();
@@ -9,7 +9,8 @@ export default function Onboarding() {
     const [name, setName] = useState('');
     const [university, setUniversity] = useState('');
     const [credits, setCredits] = useState('');
-    const [courses, setCourses] = useState('');
+    const [courses, setCourses] = useState([]);
+    const [currentCourse, setCurrentCourse] = useState('');
     const [step, setStep] = useState(1);
 
     const handleSubmit = (e) => {
@@ -20,10 +21,29 @@ export default function Onboarding() {
             setStep(3);
         } else if (step === 3 && credits.trim()) {
             setStep(4);
-        } else if (step === 4 && courses.trim()) {
-            const courseList = courses.split(',').map(c => c.trim()).filter(Boolean);
-            saveUser(name, university, parseFloat(credits) || 0, courseList);
+        } else if (step === 4) {
+            // Add any remaining text in the input as a course
+            let finalCourses = [...courses];
+            if (currentCourse.trim()) {
+                finalCourses.push(currentCourse.trim());
+            }
+            // Only proceed if we have at least one course (optional check, remove if not needed)
+            if (finalCourses.length > 0) {
+                saveUser(name, university, parseFloat(credits) || 0, finalCourses);
+            }
         }
+    };
+
+    const addCourse = (e) => {
+        e.preventDefault();
+        if (currentCourse.trim()) {
+            setCourses([...courses, currentCourse.trim()]);
+            setCurrentCourse('');
+        }
+    };
+
+    const removeCourse = (index) => {
+        setCourses(courses.filter((_, i) => i !== index));
     };
 
     return (
@@ -57,7 +77,7 @@ export default function Onboarding() {
                         Your personal academic companion.
                     </p>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form className="space-y-6">
                         {/* Step 1: Name */}
                         <div className={`transition-all duration-300 ${step === 1 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full hidden'}`}>
                             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
@@ -66,6 +86,12 @@ export default function Onboarding() {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSubmit(e);
+                                    }
+                                }}
                                 className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
                                         ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
                                         : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
@@ -83,6 +109,12 @@ export default function Onboarding() {
                                 type="text"
                                 value={university}
                                 onChange={(e) => setUniversity(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSubmit(e);
+                                    }
+                                }}
                                 className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
                                         ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
                                         : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
@@ -99,6 +131,12 @@ export default function Onboarding() {
                                 type="number"
                                 value={credits}
                                 onChange={(e) => setCredits(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSubmit(e);
+                                    }
+                                }}
                                 className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
                                         ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
                                         : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
@@ -112,26 +150,67 @@ export default function Onboarding() {
                         {/* Step 4: Courses */}
                         <div className={`transition-all duration-300 ${step === 4 ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full hidden'}`}>
                             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
-                                }`}>Current Courses (comma separated)</label>
-                            <input
-                                type="text"
-                                value={courses}
-                                onChange={(e) => setCourses(e.target.value)}
-                                className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
-                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
-                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
-                                    }`}
-                                placeholder="e.g. CS101, MAT137, PSY100"
-                            />
+                                }`}>Add your current courses</label>
+
+                            <div className="flex gap-2 mb-4">
+                                <input
+                                    type="text"
+                                    value={currentCourse}
+                                    onChange={(e) => setCurrentCourse(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addCourse(e);
+                                        }
+                                    }}
+                                    className={`flex-1 border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
+                                            ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                        }`}
+                                    placeholder="e.g. CS101"
+                                />
+                                <button
+                                    onClick={addCourse}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl transition-colors shadow-lg shadow-blue-600/20"
+                                >
+                                    <Plus className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 min-h-[40px]">
+                                {courses.map((course, index) => (
+                                    <div
+                                        key={index}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium animate-fadeIn ${theme === 'dark'
+                                                ? 'bg-white/10 text-blue-100 border border-white/10'
+                                                : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                            }`}
+                                    >
+                                        {course}
+                                        <button
+                                            onClick={() => removeCourse(index)}
+                                            className="hover:text-red-400 transition-colors"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                                {courses.length === 0 && (
+                                    <span className={`text-sm italic ${theme === 'dark' ? 'text-white/30' : 'text-slate-400'}`}>
+                                        Added courses will appear here...
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <button
-                            type="submit"
+                            type="button"
+                            onClick={handleSubmit}
                             disabled={
                                 (step === 1 && !name.trim()) ||
                                 (step === 2 && !university.trim()) ||
                                 (step === 3 && !credits.trim()) ||
-                                (step === 4 && !courses.trim())
+                                (step === 4 && courses.length === 0 && !currentCourse.trim())
                             }
                             className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                         >
