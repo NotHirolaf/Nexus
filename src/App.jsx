@@ -36,14 +36,17 @@ function AppContent() {
 }
 
 import { TimerProvider } from './context/TimerContext';
+import { TaskProvider } from './context/TaskContext';
 
 function App() {
   return (
     <UserProvider>
       <ThemeProvider>
-        <TimerProvider>
-          <AppContent />
-        </TimerProvider>
+        <TaskProvider>
+          <TimerProvider>
+            <AppContent />
+          </TimerProvider>
+        </TaskProvider>
       </ThemeProvider>
     </UserProvider>
   );

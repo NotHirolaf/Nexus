@@ -14,8 +14,15 @@ export function UserProvider({ children }) {
         localStorage.setItem('nexus_user', JSON.stringify(userData));
     };
 
+    const updateCourses = (newCourses) => {
+        if (!user) return;
+        const updatedUser = { ...user, courses: newCourses };
+        setUser(updatedUser);
+        localStorage.setItem('nexus_user', JSON.stringify(updatedUser));
+    };
+
     return (
-        <UserContext.Provider value={{ user, saveUser }}>
+        <UserContext.Provider value={{ user, saveUser, updateCourses }}>
             {children}
         </UserContext.Provider>
     );

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
-import { Clock, Book, TrendingUp, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
+import { useTasks } from '../context/TaskContext';
+import { Clock, Book, TrendingUp, CheckCircle, AlertCircle, Calendar, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const StatCard = ({ title, value, subtext, icon: Icon, colorClass }) => (
     <div className="glass-card p-6 flex items-start justify-between hover:scale-[1.02] transition-transform duration-300">
@@ -15,13 +17,63 @@ const StatCard = ({ title, value, subtext, icon: Icon, colorClass }) => (
     </div>
 );
 
-const TaskItem = ({ title, due, priority }) => (
+// Helper to get friendly time (e.g. "Due in 2h 30m" or "Tomorrow at 5:00 PM")
+const getTaskTimeDisplay = (dateStr, timeStr) => {
+    if (!dateStr) return '';
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const userTime = timeStr || '23:59';
+
+    // Format basic time AM/PM
+    const [h, m] = userTime.split(':');
+    const hours = parseInt(h, 10);
+    const minutes = parseInt(m, 10);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayH = hours % 12 || 12;
+    const displayM = minutes < 10 ? '0' + minutes : minutes;
+    const niceTime = `${displayH}:${displayM} ${ampm}`;
+
+    if (dateStr === todayStr) {
+        // Calculate countdown
+        const due = new Date();
+        due.setHours(hours, minutes, 0, 0);
+
+        const diffMs = due - now;
+        const diffMins = Math.floor(diffMs / 60000);
+
+        if (diffMins < 0) return <span className="text-red-500 font-bold">Overdue</span>;
+
+        const hLeft = Math.floor(diffMins / 60);
+        const mLeft = diffMins % 60;
+
+        if (hLeft === 0) return <span className="text-orange-500 font-bold">Due in {mLeft}m</span>;
+        return <span className="text-blue-500 font-bold">Due in {hLeft}h {mLeft}m</span>;
+    }
+
+    // If tomorrow or later
+    const dateObj = new Date(dateStr + 'T00:00:00'); // simpler parsing
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    if (dateStr === tomorrowStr) return `Tomorrow, ${niceTime}`;
+
+    // Format date nicely (e.g. "Jan 25")
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const d = new Date(dateStr + 'T12:00:00'); // mid-day to avoid timezone offset shifts
+    return `${months[d.getMonth()]} ${d.getDate()}, ${niceTime}`;
+};
+
+const TaskItem = ({ task }) => (
     <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/30 dark:hover:bg-white/5 transition-colors group cursor-pointer border-b border-white/5 last:border-0">
         <div className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full ${priority === 'high' ? 'bg-red-500' : 'bg-green-500'}`} />
-            <span className="text-sm font-bold text-[var(--app-text-color)] dark:text-gray-200 group-hover:text-blue-600 transition-colors">{title}</span>
+            <div className={`w-2 h-2 rounded-full ${task.priority === 'high' ? 'bg-red-500' : 'bg-green-500'}`} />
+            <span className={`text-sm font-bold text-[var(--app-text-color)] dark:text-gray-200 group-hover:text-blue-600 transition-colors ${task.completed ? 'line-through opacity-50' : ''}`}>{task.title}</span>
         </div>
-        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">{due}</span>
+        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+            {getTaskTimeDisplay(task.date, task.time)}
+        </span>
     </div>
 );
 
@@ -37,9 +89,24 @@ const formatTime = (decimalTime) => {
 
 export default function Dashboard() {
     const { user } = useUser();
+    const { tasks } = useTasks();
     const [todayClasses, setTodayClasses] = useState([]);
     const [nextClass, setNextClass] = useState(null);
     const [timeUntilNext, setTimeUntilNext] = useState('');
+
+    // Task Logic
+    const pendingTasksCount = tasks.filter(t => !t.completed).length;
+    const highPriorityCount = tasks.filter(t => !t.completed && t.priority === 'high').length;
+
+    const priorityTasks = tasks
+        .filter(t => !t.completed)
+        .sort((a, b) => {
+            // Sort by priority (high first) then date
+            if (a.priority === 'high' && b.priority !== 'high') return -1;
+            if (a.priority !== 'high' && b.priority === 'high') return 1;
+            return new Date(a.date) - new Date(b.date);
+        })
+        .slice(0, 4);
 
     useEffect(() => {
         // Load schedule from localStorage
@@ -127,8 +194,8 @@ export default function Dashboard() {
                 />
                 <StatCard
                     title="Pending Tasks"
-                    value="4"
-                    subtext="2 due today"
+                    value={pendingTasksCount}
+                    subtext={`${highPriorityCount} High Priority`}
                     icon={AlertCircle}
                     colorClass="text-orange-500 bg-orange-500"
                 />
@@ -183,14 +250,17 @@ export default function Dashboard() {
                         <CheckCircle className="w-5 h-5 text-green-500" /> Priority Tasks
                     </h2>
                     <div className="space-y-1">
-                        <TaskItem title="Submit CS Assignment" due="Today, 11:59 PM" priority="high" />
-                        <TaskItem title="Read Calc Chapter 4" due="Tomorrow" priority="normal" />
-                        <TaskItem title="Register for Electives" due="Fri, Jan 26" priority="high" />
-                        <TaskItem title="Email Professor Smith" due="Next Week" priority="normal" />
+                        {priorityTasks.length > 0 ? (
+                            priorityTasks.map(task => (
+                                <TaskItem key={task.id} task={task} />
+                            ))
+                        ) : (
+                            <div className="text-center py-6 text-gray-500">No priority tasks available.</div>
+                        )}
                     </div>
-                    <button className="mt-4 w-full py-2 text-sm text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
-                        View All Tasks
-                    </button>
+                    <Link to="/todo" className="block mt-4 text-center w-full py-2 text-sm text-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
+                        View All Tasks <ArrowRight className="inline w-4 h-4 ml-1" />
+                    </Link>
                 </div>
             </div>
         </div>

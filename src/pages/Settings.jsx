@@ -1,8 +1,31 @@
 import React, { useState } from 'react';
-import { Trash2, AlertTriangle, Check, RefreshCw, Settings as SettingsIcon } from 'lucide-react';
+import { Trash2, AlertTriangle, Check, RefreshCw, Settings as SettingsIcon, Plus, X } from 'lucide-react';
+import { useUser } from '../context/UserContext';
 
 export default function Settings() {
+    const { user, updateCourses } = useUser();
     const [isResetting, setIsResetting] = useState(false);
+    const [newCourse, setNewCourse] = useState('');
+
+    const handleAddCourse = (e) => {
+        e.preventDefault();
+        const trimmed = newCourse.trim();
+        if (!trimmed) return;
+
+        if (user.courses.includes(trimmed)) {
+            alert('Course already exists!');
+            return;
+        }
+
+        updateCourses([...user.courses, trimmed]);
+        setNewCourse('');
+    };
+
+    const handleDeleteCourse = (courseToDelete) => {
+        if (window.confirm(`Remove ${courseToDelete} from your profile? This won't delete grade data until you reset.`)) {
+            updateCourses(user.courses.filter(c => c !== courseToDelete));
+        }
+    };
 
     const handleClearData = () => {
         if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
@@ -23,6 +46,45 @@ export default function Settings() {
                     Settings
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your application preferences and data.</p>
+            </div>
+
+            {/* Course Management */}
+            <div className="glass-panel p-8 rounded-2xl space-y-6">
+                <div>
+                    <h3 className="text-xl font-bold text-black dark:text-white mb-1">My Courses</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Update your semester listing.</p>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                    {user?.courses.map(course => (
+                        <div key={course} className="flex items-center gap-2 pl-4 pr-2 py-2 bg-white/50 dark:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 group">
+                            <span className="font-medium text-black dark:text-gray-200">{course}</span>
+                            <button
+                                onClick={() => handleDeleteCourse(course)}
+                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
+                <form onSubmit={handleAddCourse} className="flex gap-4">
+                    <input
+                        type="text"
+                        value={newCourse}
+                        onChange={e => setNewCourse(e.target.value)}
+                        placeholder="Add new course (e.g. Physics 201)"
+                        className="flex-1 bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                    />
+                    <button
+                        type="submit"
+                        disabled={!newCourse.trim()}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-bold transition-colors flex items-center gap-2"
+                    >
+                        <Plus className="w-5 h-5" /> Add
+                    </button>
+                </form>
             </div>
 
             <div className="glass-panel p-8 rounded-2xl border-l-4 border-l-red-500 space-y-6">
