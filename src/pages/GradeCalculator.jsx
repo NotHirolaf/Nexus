@@ -69,6 +69,7 @@ export default function GradeCalculator() {
     const { user } = useUser();
     const [selectedCourse, setSelectedCourse] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [targetGrade, setTargetGrade] = useState(85.0);
     const [assessmentsData, setAssessmentsData] = useState(() => {
         const saved = localStorage.getItem('nexus_grades');
         return saved ? JSON.parse(saved) : {};
@@ -132,32 +133,84 @@ export default function GradeCalculator() {
             totalPlannedWeight += weight;
 
             // Only count items that have a numeric score entered
-            // Check for empty string explicitly because 0 is a valid score
             if (item.score !== '' && !isNaN(item.score)) {
                 const score = parseFloat(item.score);
                 completedWeight += weight;
-                weightedScoreSum += (score * weight); // e.g. 50 * 80 (raw multiplication)
+                weightedScoreSum += (score * weight);
             }
         });
 
         if (completedWeight === 0) return { percent: 0, letter: 'N/A', totalWeight: 0, plannedWeight: totalPlannedWeight };
 
-        // Average = (Total Weighted Score) / (Total Weight Completed)
-        // Ensure accurate division. If weight is 50 and score is 80 (4000), 4000/50 = 80.
         const currentAverage = weightedScoreSum / completedWeight;
-
         const grade = getGradeFromPercentage(currentAverage);
 
         return {
             percent: currentAverage.toFixed(1),
             letter: grade.letter,
             gpa: grade.gpa,
-            totalWeight: completedWeight, // Used for "progress"
+            totalWeight: completedWeight,
             plannedWeight: totalPlannedWeight
         };
     };
 
     const gradeInfo = calculateGrade();
+
+    const calculateRequired = () => {
+        // Current earned points (e.g., 50% weight * 80 score = 40 pts)
+        let earnedPoints = 0;
+        let completedWeight = 0;
+
+        const currentList = getCurrentAssessments();
+        currentList.forEach(item => {
+            if (item.score !== '' && !isNaN(item.score)) {
+                earnedPoints += (parseFloat(item.score) * parseFloat(item.weight)) / 100;
+                completedWeight += parseFloat(item.weight);
+            }
+        });
+
+        // Remaining weight to get to 100% (or total planned if > 100? No, assume 100 total)
+        const remainingWeight = 100 - completedWeight;
+
+        if (remainingWeight <= 0) return { impossible: true, done: true };
+
+        // Points needed to reach target
+        const safeTarget = (typeof targetGrade === 'number') ? targetGrade : 0;
+        const pointsNeeded = safeTarget - earnedPoints;
+
+        // Required score on remaining weight
+        const requiredScore = (pointsNeeded / remainingWeight) * 100;
+
+        return {
+            score: requiredScore,
+            remaining: remainingWeight,
+            impossible: requiredScore < 0 || requiredScore > 120
+        };
+    };
+
+    const targetInfo = calculateRequired();
+
+    const addFinalExam = () => {
+        if (!selectedCourse) return;
+        const currentList = getCurrentAssessments();
+
+        // Check total planned weight
+        let totalPlanned = 0;
+        currentList.forEach(i => totalPlanned += (parseFloat(i.weight) || 0));
+
+        if (totalPlanned >= 100) {
+            alert("Total weight is already 100% or more!");
+            return;
+        }
+
+        const remaining = 100 - totalPlanned;
+
+        const newList = [...currentList, { name: 'Final Exam', weight: remaining, score: '' }];
+        setAssessmentsData({
+            ...assessmentsData,
+            [selectedCourse]: newList
+        });
+    };
 
     if (!user?.courses || user.courses.length === 0) {
         return (
@@ -172,9 +225,6 @@ export default function GradeCalculator() {
                 <Link
                     to="/"
                     onClick={() => {
-                        // Reset onboarding triggers if needed, but for now just redirect or show helpful message
-                        // Since we don't have a settings page yet, we might need a way to edit profile.
-                        // For now let's assume valid onboarding.
                         localStorage.clear();
                         window.location.reload();
                     }}
@@ -308,6 +358,54 @@ export default function GradeCalculator() {
                                 )}
                             </div>
                         </div>
+                    </div>
+
+                    {/* Target Grade Section */}
+                    <div className="glass-card p-6 space-y-4">
+                        <h3 className="font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest text-xs mb-2">Target Grade</h3>
+                        <div className="flex items-center gap-3 bg-white/50 dark:bg-black/20 p-2 rounded-xl border border-white/20 dark:border-white/5">
+                            <span className="text-sm font-medium pl-2 text-gray-500">Goal:</span>
+                            <input
+                                type="number"
+                                value={targetGrade}
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    if (val === '') {
+                                        setTargetGrade('');
+                                    } else {
+                                        setTargetGrade(parseFloat(val));
+                                    }
+                                }}
+                                className="w-16 bg-transparent font-bold text-lg text-gray-800 dark:text-white outline-none"
+                            />
+                            <span className="text-sm font-bold text-gray-400">%</span>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
+                            {targetInfo.done ? (
+                                <p className="text-green-600 dark:text-green-400 font-bold">Course Completed!</p>
+                            ) : targetInfo.impossible ? (
+                                <div>
+                                    <div className="text-red-500 font-bold text-lg">{targetInfo.score.toFixed(1)}%</div>
+                                    <p className="text-xs text-red-400 mt-1">Required on remaining {targetInfo.remaining}%</p>
+                                    <p className="text-[10px] opacity-70 mt-1">(Might be impossible)</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="text-blue-600 dark:text-blue-400 font-bold text-3xl">{targetInfo.score.toFixed(1)}%</div>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Required on remaining {targetInfo.remaining}%</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {!targetInfo.done && (
+                            <button
+                                onClick={addFinalExam}
+                                className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-sm transition-colors shadow-lg shadow-blue-500/20"
+                            >
+                                Add Final Exam
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
