@@ -49,16 +49,14 @@ export default function Onboarding() {
     return (
         <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-500 ${theme === 'dark'
                 ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900'
-                : 'bg-gradient-to-br from-blue-50 via-white to-blue-50'
+                : 'bg-gradient-to-br from-blue-100 via-blue-50 to-white'
             }`}>
-            <div className={`max-w-md w-full p-8 rounded-3xl relative overflow-hidden transition-all duration-300 ${theme === 'dark'
-                    ? 'glass-panel border-white/10'
-                    : 'bg-white/80 backdrop-blur-xl border border-white shadow-xl'
+            <div className={`max-w-md w-full p-8 rounded-3xl relative overflow-hidden transition-all duration-300 glass-panel ${theme === 'dark' ? 'border-white/10' : 'border-white/40'
                 }`}>
                 {/* Decorative background elements */}
-                <div className={`absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-blue-500' : 'bg-blue-300'
+                <div className={`absolute -top-20 -right-20 w-60 h-60 rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-blue-500' : 'bg-blue-400'
                     }`}></div>
-                <div className={`absolute -bottom-20 -left-20 w-60 h-60 rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-purple-500' : 'bg-purple-300'
+                <div className={`absolute -bottom-20 -left-20 w-60 h-60 rounded-full blur-3xl opacity-20 ${theme === 'dark' ? 'bg-purple-500' : 'bg-purple-400'
                     }`}></div>
 
                 <div className="relative z-10">
@@ -93,8 +91,8 @@ export default function Onboarding() {
                                     }
                                 }}
                                 className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
-                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
-                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                    ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                    : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
                                     }`}
                                 placeholder="Enter your name"
                                 autoFocus
@@ -116,8 +114,8 @@ export default function Onboarding() {
                                     }
                                 }}
                                 className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
-                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
-                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                    ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                    : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
                                     }`}
                                 placeholder="e.g. University of Toronto"
                             />
@@ -138,8 +136,8 @@ export default function Onboarding() {
                                     }
                                 }}
                                 className={`w-full border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
-                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
-                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                    ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                    : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
                                     }`}
                                 placeholder="e.g. 12.5"
                                 min="0"
@@ -164,8 +162,8 @@ export default function Onboarding() {
                                         }
                                     }}
                                     className={`flex-1 border rounded-xl px-4 py-3 placeholder-opacity-50 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all ${theme === 'dark'
-                                            ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
-                                            : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
+                                        ? 'bg-white/10 border-white/20 text-white placeholder-blue-300'
+                                        : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400'
                                         }`}
                                     placeholder="e.g. CS101"
                                 />
@@ -182,8 +180,8 @@ export default function Onboarding() {
                                     <div
                                         key={index}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium animate-fadeIn ${theme === 'dark'
-                                                ? 'bg-white/10 text-blue-100 border border-white/10'
-                                                : 'bg-blue-50 text-blue-700 border border-blue-100'
+                                            ? 'bg-white/10 text-blue-100 border border-white/10'
+                                            : 'bg-blue-50 text-blue-700 border border-blue-100'
                                             }`}
                                     >
                                         {course}
@@ -220,8 +218,8 @@ export default function Onboarding() {
                         <div className="flex justify-center gap-2 mt-4">
                             {[1, 2, 3, 4].map((s) => (
                                 <div key={s} className={`w-2 h-2 rounded-full transition-colors ${step >= s
-                                        ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
-                                        : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
+                                    ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
+                                    : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
                                     }`}></div>
                             ))}
                         </div>

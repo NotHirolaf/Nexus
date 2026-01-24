@@ -24,8 +24,8 @@ const CourseBlock = ({ name, room, color, dayIndex, startTime, duration }) => {
                 width: 'calc(20% - 16px)'
             }}
         >
-            <div className="text-xs font-bold text-gray-800 dark:text-gray-900">{name}</div>
-            <div className="text-[10px] text-gray-600 dark:text-gray-800 mt-1">{room}</div>
+            <div className="text-xs font-bold text-black dark:text-gray-900">{name}</div>
+            <div className="text-[10px] text-black dark:text-gray-800 mt-1">{room}</div>
         </div>
     );
 };
@@ -34,7 +34,7 @@ export default function Timetable() {
     return (
         <div className="h-[calc(100vh-8rem)] flex flex-col">
             <div className="flex justify-between items-center mb-6 px-2">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Timetable</h1>
+                <h1 className="text-3xl font-bold text-black dark:text-white">Timetable</h1>
                 <div className="flex gap-2">
                     <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors">
                         Add Course
@@ -45,9 +45,9 @@ export default function Timetable() {
             <div className="glass-panel flex-1 rounded-2xl overflow-hidden relative flex flex-col">
                 {/* Header Row */}
                 <div className="flex border-b border-gray-200 dark:border-white/10 bg-white/30 dark:bg-black/20">
-                    <div className="w-16 p-3 flex-shrink-0 text-center text-xs font-bold text-gray-500">TIME</div>
+                    <div className="w-16 p-3 flex-shrink-0 text-center text-xs font-bold text-black dark:text-gray-500">TIME</div>
                     {days.map(day => (
-                        <div key={day} className="flex-1 p-3 text-center text-sm font-bold text-gray-700 dark:text-gray-300 border-l border-gray-200/50 dark:border-white/5">
+                        <div key={day} className="flex-1 p-3 text-center text-sm font-bold text-black dark:text-gray-300 border-l border-gray-200/50 dark:border-white/5">
                             {day}
                         </div>
                     ))}

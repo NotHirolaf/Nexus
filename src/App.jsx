@@ -8,6 +8,7 @@ import GradeCalculator from './pages/GradeCalculator';
 import GpaCalculator from './pages/GpaCalculator';
 import TodoList from './pages/TodoList';
 import Onboarding from './pages/Onboarding';
+import Settings from './pages/Settings';
 
 function AppContent() {
   const { user } = useUser();
@@ -25,6 +26,7 @@ function AppContent() {
           <Route path="grades" element={<GradeCalculator />} />
           <Route path="gpa" element={<GpaCalculator />} />
           <Route path="todo" element={<TodoList />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </Router>

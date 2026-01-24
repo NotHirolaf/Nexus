@@ -7,9 +7,9 @@ const TodoItem = ({ text, date, tag, color, done }) => (
             {done && <CheckSquare className="w-4 h-4 text-white" />}
         </button>
         <div className="flex-1">
-            <p className={`font-medium text-gray-800 dark:text-gray-200 ${done ? 'line-through text-gray-500' : ''}`}>{text}</p>
+            <p className={`font-medium text-black dark:text-gray-200 ${done ? 'line-through text-gray-500' : ''}`}>{text}</p>
             <div className="flex items-center gap-3 mt-1">
-                <span className="flex items-center gap-1 text-xs text-gray-500">
+                <span className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-500">
                     <Calendar className="w-3 h-3" /> {date}
                 </span>
                 {tag && (
@@ -41,7 +41,7 @@ export default function TodoList() {
                         <button
                             key={f}
                             onClick={() => setFilter(f)}
-                            className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors capitalized ${filter === f ? 'bg-blue-500/10 text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-white/5'}`}
+                            className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors capitalized ${filter === f ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300' : 'text-black dark:text-gray-400 hover:bg-white/5'}`}
                         >
                             {f.charAt(0).toUpperCase() + f.slice(1)}
                         </button>
@@ -61,8 +61,8 @@ export default function TodoList() {
             {/* List Area */}
             <div className="flex-1 glass-panel rounded-2xl p-6 flex flex-col gap-4 overflow-y-auto">
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Tasks</h2>
-                    <span className="text-sm text-gray-500">5 items</span>
+                    <h2 className="text-2xl font-bold text-black dark:text-white">Tasks</h2>
+                    <span className="text-sm text-black dark:text-gray-500">5 items</span>
                 </div>
 
                 <div className="space-y-3">

@@ -5,20 +5,27 @@ const ThemeContext = createContext();
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('theme') || 'dark';
+            const saved = localStorage.getItem('theme');
+            // Remap old 'silver' to 'light' or just ignore it
+            if (saved === 'silver') return 'light';
+            return ['dark', 'hybrid', 'light'].includes(saved) ? saved : 'dark';
         }
         return 'dark';
     });
 
     useEffect(() => {
         const root = window.document.documentElement;
-        root.classList.remove('light', 'dark');
+        root.classList.remove('light', 'dark', 'hybrid', 'silver');
         root.classList.add(theme);
         localStorage.setItem('theme', theme);
     }, [theme]);
 
     const toggleTheme = () => {
-        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+        setTheme((prev) => {
+            if (prev === 'dark') return 'light';
+            if (prev === 'light') return 'hybrid';
+            return 'dark'; // From hybrid (or other) to dark
+        });
     };
 
     return (

@@ -11,34 +11,110 @@
   --color-nexus-blue-700: #224270;
   --color-nexus-blue-800: #1e3a5f;
   --color-nexus-blue-900: #002a5c;
-  /* UofT Official Blue */
   --color-nexus-blue-950: #001836;
 }
 
+/* =========================================
+   THEME DEFINITIONS
+   ========================================= */
+
+/* HYBRID MODE */
+html.hybrid {
+  --bg-app: linear-gradient(145deg, #374151 0%, #4b5563 100%);
+  --bg-panel: rgba(55, 65, 81, 0.6);
+  --bg-glass: rgba(55, 65, 81, 0.7);
+
+  --app-text-color: #f9fafb;
+  --text-primary: #f9fafb;
+  --text-secondary: #e5e7eb;
+  --text-muted: #9ca3af;
+
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* DARK MODE */
+html.dark {
+  --bg-app: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
+  --bg-panel: rgba(15, 23, 42, 0.6);
+  --bg-glass: rgba(15, 23, 42, 0.7);
+
+  --app-text-color: #f8fafc;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+
+
+/* =========================================
+   BASE & UTILITIES
+   ========================================= */
 @layer base {
   body {
-    @apply font-sans antialiased;
-    /* Clean gradient background */
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    @apply font-sans antialiased transition-colors duration-300;
     min-height: 100vh;
-  }
-
-  .dark body {
-    /* Dark Deep Space Gradient */
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    background: var(--bg-app);
+    color: var(--text-primary);
   }
 }
 
 @layer utilities {
+  .light {
+    --bg-app: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+    --bg-panel: rgba(55, 65, 81, 0.85);
+    --bg-glass: rgba(55, 65, 81, 0.9);
+
+    --app-text-color: #000000;
+    --text-primary: #f9fafb;
+    --text-secondary: #e5e7eb;
+    --text-muted: #9ca3af;
+
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  }
+
   .glass {
-    @apply backdrop-blur-md bg-white/10 dark:bg-black/20 border border-white/20 dark:border-white/10 shadow-lg;
+    background: var(--bg-glass);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .glass-card {
-    @apply backdrop-blur-lg bg-white/40 dark:bg-slate-900/50 border border-white/30 dark:border-white/10 shadow-xl rounded-2xl;
+    background: var(--bg-panel);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    @apply rounded-2xl;
   }
 
   .glass-panel {
-    @apply backdrop-blur-xl bg-white/60 dark:bg-slate-900/60 border border-white/40 dark:border-white/10 shadow-2xl;
+    background: var(--bg-panel);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .text-app-base {
+    color: var(--app-text-color);
+  }
+
+  .text-p {
+    color: var(--text-primary);
+  }
+
+  .text-s {
+    color: var(--text-secondary);
+  }
+
+  .text-m {
+    color: var(--text-muted);
   }
 }
