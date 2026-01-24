@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Calculator, GraduationCap, CheckSquare, Sun, Moon, Cloud, BookOpen, Settings } from 'lucide-react';
+import { LayoutDashboard, Calendar, Calculator, GraduationCap, CheckSquare, Sun, Moon, Cloud, BookOpen, Settings, Timer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { cn } from '../lib/utils';
@@ -12,6 +12,7 @@ export default function Sidebar() {
     const navItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Timetable', path: '/timetable', icon: Calendar },
+        { name: 'Focus Timer', path: '/pomodoro', icon: Timer },
         { name: 'Grade Calc', path: '/grades', icon: Calculator },
         { name: 'GPA Calc', path: '/gpa', icon: GraduationCap },
         { name: 'To-Do List', path: '/todo', icon: CheckSquare },

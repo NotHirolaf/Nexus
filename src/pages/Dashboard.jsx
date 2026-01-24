@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
-import { Clock, Book, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { Clock, Book, TrendingUp, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
 
 const StatCard = ({ title, value, subtext, icon: Icon, colorClass }) => (
     <div className="glass-card p-6 flex items-start justify-between hover:scale-[1.02] transition-transform duration-300">
@@ -25,8 +25,74 @@ const TaskItem = ({ title, due, priority }) => (
     </div>
 );
 
+// Helper to format decimal time (e.g., 10.5 -> "10:30 AM")
+const formatTime = (decimalTime) => {
+    const hours = Math.floor(decimalTime);
+    const minutes = Math.round((decimalTime - hours) * 60);
+    const ampm = hours >= 12 && hours < 24 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
+    return `${displayHours}:${displayMinutes} ${ampm}`;
+};
+
 export default function Dashboard() {
     const { user } = useUser();
+    const [todayClasses, setTodayClasses] = useState([]);
+    const [nextClass, setNextClass] = useState(null);
+    const [timeUntilNext, setTimeUntilNext] = useState('');
+
+    useEffect(() => {
+        // Load schedule from localStorage
+        const loadSchedule = () => {
+            const saved = localStorage.getItem('nexus_timetable');
+            if (!saved) return;
+
+            const schedule = JSON.parse(saved);
+            const now = new Date();
+            let currentDayIndex = now.getDay() - 1; // 0=Mon, 4=Fri. (Sunday=-1, Sat=5)
+
+            // If it's weekend, maybe show Monday's classes? Or just say "No classes today"
+            // For now, let's strict to "Today"
+
+            const daysClasses = schedule
+                .filter(c => c.dayIndex === currentDayIndex)
+                .sort((a, b) => a.startTime - b.startTime);
+
+            setTodayClasses(daysClasses);
+
+            // Find Next Class
+            const currentDecimalTime = now.getHours() + now.getMinutes() / 60;
+
+            // Allow showing classes that are currently running?
+            // "Next" usually means starting in the future.
+            // Let's find the first class that hasn't ended yet?
+            // Or strictly "starts in the future".
+
+            const upcoming = daysClasses.find(c => c.startTime > currentDecimalTime);
+
+            if (upcoming) {
+                setNextClass(upcoming);
+                const diffHours = upcoming.startTime - currentDecimalTime;
+                const diffMins = Math.round(diffHours * 60);
+
+                if (diffMins < 60) {
+                    setTimeUntilNext(`Starts in ${diffMins} mins`);
+                } else {
+                    const h = Math.floor(diffMins / 60);
+                    const m = diffMins % 60;
+                    setTimeUntilNext(`Starts in ${h}h ${m}m`);
+                }
+            } else {
+                setNextClass(null);
+                setTimeUntilNext('No more classes today');
+            }
+        };
+
+        loadSchedule();
+        const interval = setInterval(loadSchedule, 60000); // Update every minute
+        return () => clearInterval(interval);
+    }, []);
+
     return (
         <div className="p-2 md:p-6 space-y-6">
             {/* Header */}
@@ -54,8 +120,8 @@ export default function Dashboard() {
                 />
                 <StatCard
                     title="Next Class"
-                    value="CS 101"
-                    subtext="Starts in 45 mins"
+                    value={nextClass ? nextClass.name : "Free Time"}
+                    subtext={nextClass ? timeUntilNext : "No upcoming classes"}
                     icon={Book}
                     colorClass="text-blue-500 bg-blue-500"
                 />
@@ -75,21 +141,39 @@ export default function Dashboard() {
                     <h2 className="text-xl font-bold text-[var(--app-text-color)] dark:text-white mb-4 flex items-center gap-2">
                         <Clock className="w-5 h-5 text-blue-500" /> Today's Schedule
                     </h2>
-                    <div className="space-y-4">
-                        <div className="p-4 rounded-xl bg-blue-500/10 border-l-4 border-blue-500 flex justify-between items-center">
-                            <div>
-                                <h3 className="font-bold text-[var(--app-text-color)] dark:text-gray-100">Computer Science 101</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Lecture Hall A • 10:00 AM - 11:30 AM</p>
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {todayClasses.length > 0 ? (
+                            todayClasses.map((cl, idx) => {
+                                const isNext = nextClass && nextClass.id === cl.id;
+                                return (
+                                    <div
+                                        key={idx}
+                                        className={`p-4 rounded-xl flex justify-between items-center transition-all ${isNext
+                                            ? 'bg-blue-500/10 border-l-4 border-blue-500 shadow-sm'
+                                            : 'bg-gray-100/50 dark:bg-white/5 border-l-4 border-transparent opacity-80 hover:opacity-100'
+                                            }`}
+                                    >
+                                        <div>
+                                            <h3 className="font-bold text-[var(--app-text-color)] dark:text-gray-100">{cl.name}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                {cl.room} • {formatTime(cl.startTime)} - {formatTime(cl.startTime + cl.duration)}
+                                            </p>
+                                        </div>
+                                        {isNext && (
+                                            <span className="text-xs font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 px-2 py-1 rounded">
+                                                Next
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-8 opacity-60">
+                                <Calendar className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No classes scheduled for today.</p>
+                                <p className="text-xs text-gray-400">Enjoy your free day!</p>
                             </div>
-                            <span className="text-xs font-bold bg-blue-500/20 text-blue-600 dark:text-blue-300 px-2 py-1 rounded">In 45m</span>
-                        </div>
-                        <div className="p-4 rounded-xl bg-purple-500/5 border-l-4 border-gray-300 dark:border-gray-700 flex justify-between items-center opacity-70">
-                            <div>
-                                <h3 className="font-bold text-[var(--app-text-color)] dark:text-gray-100">Calculus II</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Room 304 • 1:00 PM - 2:30 PM</p>
-                            </div>
-                            <span className="text-xs font-bold bg-gray-500/20 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">Later</span>
-                        </div>
+                        )}
                     </div>
                 </div>
 

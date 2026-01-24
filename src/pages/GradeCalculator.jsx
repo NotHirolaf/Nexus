@@ -123,20 +123,28 @@ export default function GradeCalculator() {
         const currentList = getCurrentAssessments();
         if (currentList.length === 0) return { percent: 0, letter: 'N/A' };
 
-        let totalWeight = 0;
-        let totalScore = 0;
+        let completedWeight = 0;
+        let weightedScoreSum = 0;
+        let totalPlannedWeight = 0; // Everything added so far
 
         currentList.forEach(item => {
             const weight = parseFloat(item.weight) || 0;
-            const score = parseFloat(item.score) || 0;
-            totalWeight += weight;
-            totalScore += (score * weight) / 100;
+            totalPlannedWeight += weight;
+
+            // Only count items that have a numeric score entered
+            // Check for empty string explicitly because 0 is a valid score
+            if (item.score !== '' && !isNaN(item.score)) {
+                const score = parseFloat(item.score);
+                completedWeight += weight;
+                weightedScoreSum += (score * weight); // e.g. 50 * 80 (raw multiplication)
+            }
         });
 
-        if (totalWeight === 0) return { percent: 0, letter: 'N/A' };
+        if (completedWeight === 0) return { percent: 0, letter: 'N/A', totalWeight: 0, plannedWeight: totalPlannedWeight };
 
-        // Calculate current average based on weight completed so far
-        const currentAverage = (totalScore / totalWeight) * 100;
+        // Average = (Total Weighted Score) / (Total Weight Completed)
+        // Ensure accurate division. If weight is 50 and score is 80 (4000), 4000/50 = 80.
+        const currentAverage = weightedScoreSum / completedWeight;
 
         const grade = getGradeFromPercentage(currentAverage);
 
@@ -144,7 +152,8 @@ export default function GradeCalculator() {
             percent: currentAverage.toFixed(1),
             letter: grade.letter,
             gpa: grade.gpa,
-            totalWeight // Useful to know if > 100% or < 100%
+            totalWeight: completedWeight, // Used for "progress"
+            plannedWeight: totalPlannedWeight
         };
     };
 
@@ -186,16 +195,16 @@ export default function GradeCalculator() {
                 </div>
 
                 {/* Visual Grade Badge */}
-                <div className="glass px-6 py-3 rounded-2xl flex items-center gap-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg border-0">
-                    <div className="text-right">
+                <div className="glass px-6 py-3 rounded-2xl flex items-center gap-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg border-0 w-[300px] flex-shrink-0">
+                    <div className="text-right flex-1">
                         <div className="text-xs font-medium opacity-80 uppercase tracking-wider">Projected</div>
-                        <div className="text-3xl font-bold leading-none flex items-baseline gap-2">
+                        <div className="text-3xl font-bold leading-none flex items-baseline justify-end gap-2">
                             {gradeInfo.letter}
                             {gradeInfo.gpa !== undefined && <span className="text-lg opacity-60 font-medium">({gradeInfo.gpa})</span>}
                         </div>
                     </div>
-                    <div className="h-8 w-px bg-white/20"></div>
-                    <div>
+                    <div className="h-8 w-px bg-white/20 flex-shrink-0"></div>
+                    <div className="text-left flex-1">
                         <div className="text-xs font-medium opacity-80 uppercase tracking-wider">Average</div>
                         <div className="text-xl font-bold leading-none">{gradeInfo.percent}%</div>
                     </div>
@@ -272,7 +281,7 @@ export default function GradeCalculator() {
                 {/* Course Stats / Info */}
                 <div className="space-y-6">
                     <div className="glass-card p-6 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                        <div className="relative z-10">
+                        <div className="relative z-10 flex flex-col items-center w-full">
                             <h3 className="font-bold text-gray-500 dark:text-gray-400 mb-6 uppercase tracking-widest text-xs">Course Progress</h3>
                             <div className="w-40 h-40 rounded-full border-8 border-blue-500/10 flex items-center justify-center mb-4 relative">
                                 <svg className="w-full h-full absolute top-0 left-0 -rotate-90 transform" viewBox="0 0 100 100">
@@ -282,13 +291,13 @@ export default function GradeCalculator() {
                                         stroke="currentColor"
                                         strokeWidth="8"
                                         className="text-blue-500 transition-all duration-1000 ease-out"
-                                        strokeDasharray={`${(gradeInfo.percent * 2.89) || 0} 289`}
+                                        strokeDasharray={`${(gradeInfo.totalWeight * 2.89) || 0} 289`}
                                         strokeLinecap="round"
                                     />
                                 </svg>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-4xl font-bold text-gray-800 dark:text-white">{gradeInfo.percent}</span>
-                                    <span className="text-xs text-gray-400">%</span>
+                                    <span className="text-4xl font-bold text-gray-800 dark:text-white">{Math.round(gradeInfo.totalWeight)}</span>
+                                    <span className="text-xs text-gray-400">% Completed</span>
                                 </div>
                             </div>
                             <div className="text-sm font-medium text-gray-600 dark:text-gray-300">
