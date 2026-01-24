@@ -18,64 +18,53 @@ const StatCard = ({ title, value, subtext, icon: Icon, colorClass }) => (
 );
 
 // Helper to get friendly time (e.g. "Due in 2h 30m" or "Tomorrow at 5:00 PM")
-const getTaskTimeDisplay = (dateStr, timeStr) => {
+// Helper to get friendly time (e.g. "Due in 2h 30m" or "Tomorrow at 5:00 PM")
+const getTaskTimeDisplay = (dateStr, timeStr, now = new Date()) => {
     if (!dateStr) return '';
 
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
     const userTime = timeStr || '23:59';
-
-    // Format basic time AM/PM
     const [h, m] = userTime.split(':');
     const hours = parseInt(h, 10);
     const minutes = parseInt(m, 10);
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayH = hours % 12 || 12;
-    const displayM = minutes < 10 ? '0' + minutes : minutes;
-    const niceTime = `${displayH}:${displayM} ${ampm}`;
 
-    if (dateStr === todayStr) {
-        // Calculate countdown
-        const due = new Date();
-        due.setHours(hours, minutes, 0, 0);
+    // Construct due date object (handle YYYY-MM-DD properly with time)
+    const due = new Date(`${dateStr}T${userTime}:00`);
 
-        const diffMs = due - now;
-        const diffMins = Math.floor(diffMs / 60000);
+    const diffMs = due - now;
+    const diffMins = Math.floor(diffMs / 60000);
 
-        if (diffMins < 0) return <span className="text-red-500 font-bold">Overdue</span>;
+    if (diffMins < 0) return <span className="text-red-500 font-bold">Overdue</span>;
 
-        const hLeft = Math.floor(diffMins / 60);
-        const mLeft = diffMins % 60;
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
 
-        if (hLeft === 0) return <span className="text-orange-500 font-bold">Due in {mLeft}m</span>;
-        return <span className="text-blue-500 font-bold">Due in {hLeft}h {mLeft}m</span>;
+    if (diffDays > 0) {
+        if (diffDays === 1) return <span className="text-blue-500 font-bold">Due in 1 day</span>;
+        return <span className="text-blue-500 font-bold">Due in {diffDays} days</span>;
     }
 
-    // If tomorrow or later
-    const dateObj = new Date(dateStr + 'T00:00:00'); // simpler parsing
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    if (diffHours > 0) {
+        const mLeft = diffMins % 60;
+        return <span className="text-blue-500 font-bold">Due in {diffHours}h {mLeft}m</span>;
+    }
 
-    if (dateStr === tomorrowStr) return `Tomorrow, ${niceTime}`;
-
-    // Format date nicely (e.g. "Jan 25")
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const d = new Date(dateStr + 'T12:00:00'); // mid-day to avoid timezone offset shifts
-    return `${months[d.getMonth()]} ${d.getDate()}, ${niceTime}`;
+    return <span className="text-orange-500 font-bold">Due in {diffMins}m</span>;
 };
 
-const TaskItem = ({ task }) => (
-    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/30 dark:hover:bg-white/5 transition-colors group cursor-pointer border-b border-white/5 last:border-0">
-        <div className="flex items-center gap-3">
-            <div className={`w-2 h-2 rounded-full ${task.priority === 'high' ? 'bg-red-500' : 'bg-green-500'}`} />
-            <span className={`text-sm font-bold text-[var(--app-text-color)] dark:text-gray-200 group-hover:text-blue-600 transition-colors ${task.completed ? 'line-through opacity-50' : ''}`}>{task.title}</span>
+const TaskItem = ({ task }) => {
+    const { currentTime } = useTasks();
+    return (
+        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/30 dark:hover:bg-white/5 transition-colors group cursor-pointer border-b border-white/5 last:border-0">
+            <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${task.priority === 'high' ? 'bg-red-500' : 'bg-green-500'}`} />
+                <span className={`text-sm font-bold text-[var(--app-text-color)] dark:text-gray-200 group-hover:text-blue-600 transition-colors ${task.completed ? 'line-through opacity-50' : ''}`}>{task.title}</span>
+            </div>
+            <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+                {getTaskTimeDisplay(task.date, task.time, currentTime)}
+            </span>
         </div>
-        <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-            {getTaskTimeDisplay(task.date, task.time)}
-        </span>
-    </div>
-);
+    );
+};
 
 // Helper to format decimal time (e.g., 10.5 -> "10:30 AM")
 const formatTime = (decimalTime) => {
@@ -89,7 +78,8 @@ const formatTime = (decimalTime) => {
 
 export default function Dashboard() {
     const { user } = useUser();
-    const { tasks } = useTasks();
+    const { tasks, currentTime } = useTasks();
+    const [schedule, setSchedule] = useState([]);
     const [todayClasses, setTodayClasses] = useState([]);
     const [nextClass, setNextClass] = useState(null);
     const [timeUntilNext, setTimeUntilNext] = useState('');
@@ -108,57 +98,50 @@ export default function Dashboard() {
         })
         .slice(0, 4);
 
+    // Load schedule once on mount
     useEffect(() => {
-        // Load schedule from localStorage
-        const loadSchedule = () => {
-            const saved = localStorage.getItem('nexus_timetable');
-            if (!saved) return;
-
-            const schedule = JSON.parse(saved);
-            const now = new Date();
-            let currentDayIndex = now.getDay() - 1; // 0=Mon, 4=Fri. (Sunday=-1, Sat=5)
-
-            // If it's weekend, maybe show Monday's classes? Or just say "No classes today"
-            // For now, let's strict to "Today"
-
-            const daysClasses = schedule
-                .filter(c => c.dayIndex === currentDayIndex)
-                .sort((a, b) => a.startTime - b.startTime);
-
-            setTodayClasses(daysClasses);
-
-            // Find Next Class
-            const currentDecimalTime = now.getHours() + now.getMinutes() / 60;
-
-            // Allow showing classes that are currently running?
-            // "Next" usually means starting in the future.
-            // Let's find the first class that hasn't ended yet?
-            // Or strictly "starts in the future".
-
-            const upcoming = daysClasses.find(c => c.startTime > currentDecimalTime);
-
-            if (upcoming) {
-                setNextClass(upcoming);
-                const diffHours = upcoming.startTime - currentDecimalTime;
-                const diffMins = Math.round(diffHours * 60);
-
-                if (diffMins < 60) {
-                    setTimeUntilNext(`Starts in ${diffMins} mins`);
-                } else {
-                    const h = Math.floor(diffMins / 60);
-                    const m = diffMins % 60;
-                    setTimeUntilNext(`Starts in ${h}h ${m}m`);
-                }
-            } else {
-                setNextClass(null);
-                setTimeUntilNext('No more classes today');
-            }
-        };
-
-        loadSchedule();
-        const interval = setInterval(loadSchedule, 60000); // Update every minute
-        return () => clearInterval(interval);
+        const saved = localStorage.getItem('nexus_timetable');
+        if (saved) {
+            setSchedule(JSON.parse(saved));
+        }
     }, []);
+
+    // Update schedule view whenever currentTime or schedule (data) changes
+    useEffect(() => {
+        if (!schedule.length) return;
+
+        // Use currentTime from context instead of new Date()
+        const now = currentTime || new Date();
+        let currentDayIndex = now.getDay() - 1; // 0=Mon, 4=Fri. (Sunday=-1, Sat=5)
+
+        const daysClasses = schedule
+            .filter(c => c.dayIndex === currentDayIndex)
+            .sort((a, b) => a.startTime - b.startTime);
+
+        setTodayClasses(daysClasses);
+
+        // Find Next Class
+        const currentDecimalTime = now.getHours() + now.getMinutes() / 60;
+
+        const upcoming = daysClasses.find(c => c.startTime > currentDecimalTime);
+
+        if (upcoming) {
+            setNextClass(upcoming);
+            const diffHours = upcoming.startTime - currentDecimalTime;
+            const diffMins = Math.round(diffHours * 60);
+
+            if (diffMins < 60) {
+                setTimeUntilNext(`Starts in ${diffMins} mins`);
+            } else {
+                const h = Math.floor(diffMins / 60);
+                const m = diffMins % 60;
+                setTimeUntilNext(`Starts in ${h}h ${m}m`);
+            }
+        } else {
+            setNextClass(null);
+            setTimeUntilNext('No more classes today');
+        }
+    }, [currentTime, schedule]);
 
     return (
         <div className="p-2 md:p-6 space-y-6">
@@ -172,7 +155,7 @@ export default function Dashboard() {
                 </div>
                 <div className="glass px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
                     <Clock className="w-4 h-4 text-blue-500" />
-                    <span>Spring Semester 2026</span>
+                    <span>Winter Semester 2026</span>
                 </div>
             </div>
 

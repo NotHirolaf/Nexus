@@ -14,9 +14,18 @@ export function TaskProvider({ children }) {
         return saved ? JSON.parse(saved) : SAMPLE_TASKS;
     });
 
+    const [currentTime, setCurrentTime] = useState(new Date());
+
     useEffect(() => {
         localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
     }, [tasks]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     const addTask = (task) => {
         const newTask = { ...task, id: Date.now(), completed: false };
@@ -32,7 +41,7 @@ export function TaskProvider({ children }) {
     };
 
     return (
-        <TaskContext.Provider value={{ tasks, addTask, toggleTask, deleteTask }}>
+        <TaskContext.Provider value={{ tasks, addTask, toggleTask, deleteTask, currentTime }}>
             {children}
         </TaskContext.Provider>
     );
