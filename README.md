@@ -1,6 +1,6 @@
 # Nexus - University Student Dashboard
 
-A modern, glassmorphism-styled web application for university students (University of Toronto themed).
+A modern, glassmorphism-styled web application for university students.
 
 ## Features
 - **Dashboard**: Overview of classes, GPA, and tasks.
