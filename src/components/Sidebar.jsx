@@ -31,7 +31,7 @@ export default function Sidebar() {
                         className="w-10 h-10 object-contain drop-shadow-md"
                     />
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-[var(--app-text-color)] dark:text-gray-400 uppercase tracking-wider leading-none truncate max-w-[140px]">{user?.university || 'University'}</span>
+                        <span className="text-[10px] font-bold text-[var(--app-text-color)] dark:text-gray-400 uppercase tracking-wider leading-tight whitespace-normal max-w-[140px]">{user?.university || 'University'}</span>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#002A5C] to-[#2B548A] dark:from-sky-300 dark:to-white">
                             Nexus
                         </span>
