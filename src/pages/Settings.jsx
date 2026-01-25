@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
 import { Trash2, AlertTriangle, Check, RefreshCw, Settings as SettingsIcon, Plus, X } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Settings() {
     const { user, updateCourses } = useUser();
+    const { notify, confirm } = useNotification();
     const [isResetting, setIsResetting] = useState(false);
     const [newCourse, setNewCourse] = useState('');
 
@@ -13,22 +16,38 @@ export default function Settings() {
         if (!trimmed) return;
 
         if (user.courses.includes(trimmed)) {
-            alert('Course already exists!');
+            notify('warning', 'Course already exists!');
             return;
         }
 
         updateCourses([...user.courses, trimmed]);
+        notify('success', `Added ${trimmed} `);
         setNewCourse('');
     };
 
-    const handleDeleteCourse = (courseToDelete) => {
-        if (window.confirm(`Remove ${courseToDelete} from your profile? This won't delete grade data until you reset.`)) {
+    const handleDeleteCourse = async (courseToDelete) => {
+        const isConfirmed = await confirm({
+            title: `Remove ${courseToDelete}?`,
+            message: "This won't delete grade data until you do a full reset, but it will hide it from menus.",
+            confirmText: 'Remove',
+            type: 'danger'
+        });
+
+        if (isConfirmed) {
             updateCourses(user.courses.filter(c => c !== courseToDelete));
+            notify('success', 'Course removed');
         }
     };
 
-    const handleClearData = () => {
-        if (window.confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+    const handleClearData = async () => {
+        const isConfirmed = await confirm({
+            title: 'Reset All Data?',
+            message: 'Are you sure you want to clear EVERYTHING? This includes courses, grades, tasks, and settings. This cannot be undone.',
+            confirmText: 'Reset Everything',
+            type: 'danger'
+        });
+
+        if (isConfirmed) {
             setIsResetting(true);
             // Simulate a short delay for better UX
             setTimeout(() => {

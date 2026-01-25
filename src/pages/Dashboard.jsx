@@ -143,15 +143,20 @@ export default function Dashboard() {
         }
     }, [currentTime, schedule]);
 
+    // Calculate cGPA
+    const semesters = user?.semesters || [];
+    const totalCredits = semesters.reduce((sum, s) => sum + parseFloat(s.credits), 0);
+    const weightedSum = semesters.reduce((sum, s) => sum + (parseFloat(s.credits) * parseFloat(s.gpa)), 0);
+    const cGPA = totalCredits > 0 ? (weightedSum / totalCredits).toFixed(2) : "0.00";
+
     return (
         <div className="p-2 md:p-6 space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex justify-between items-center bg-white/50 dark:bg-black/20 p-4 rounded-2xl backdrop-blur-sm border border-white/20">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
-                        Welcome back, {user?.name || 'Student'}
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                        Hello, {user?.name?.split(' ')[0] || 'Student'}!
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">Here's what's happening today.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Welcome back to your workspace</p>
                 </div>
                 <div className="glass px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
                     <Clock className="w-4 h-4 text-blue-500" />
@@ -159,12 +164,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Stats Grid */}
+            {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <StatCard
                     title="Current GPA"
-                    value="3.8"
-                    subtext="+0.2 from last semester"
+                    value={cGPA}
+                    subtext="Cumulative GPA"
                     icon={TrendingUp}
                     colorClass="text-green-500 bg-green-500"
                 />

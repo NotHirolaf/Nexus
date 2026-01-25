@@ -3,6 +3,7 @@ import { Plus, Calculator, Trash2, ArrowRight, ChevronDown } from 'lucide-react'
 import { useUser } from '../context/UserContext';
 import { Link } from 'react-router-dom';
 import { getGradeFromPercentage } from '../lib/grading';
+import { useNotification } from '../context/NotificationContext';
 
 const GradeRow = ({ assessment, onUpdate, onDelete }) => {
     const handleInput = (field, value) => {
@@ -67,6 +68,7 @@ const GradeRow = ({ assessment, onUpdate, onDelete }) => {
 
 export default function GradeCalculator() {
     const { user } = useUser();
+    const { notify, confirm } = useNotification();
     const [selectedCourse, setSelectedCourse] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [targetGrade, setTargetGrade] = useState(85.0);
@@ -111,13 +113,23 @@ export default function GradeCalculator() {
         });
     };
 
-    const deleteAssessment = (index) => {
-        const currentList = getCurrentAssessments();
-        const newList = currentList.filter((_, i) => i !== index);
-        setAssessmentsData({
-            ...assessmentsData,
-            [selectedCourse]: newList
+    const deleteAssessment = async (index) => {
+        const isConfirmed = await confirm({
+            title: 'Delete Assessment?',
+            message: 'Are you sure you want to remove this assessment?',
+            confirmText: 'Delete',
+            type: 'danger'
         });
+
+        if (isConfirmed) {
+            const currentList = getCurrentAssessments();
+            const newList = currentList.filter((_, i) => i !== index);
+            setAssessmentsData({
+                ...assessmentsData,
+                [selectedCourse]: newList
+            });
+            notify('success', 'Assessment deleted');
+        }
     };
 
     const calculateGrade = () => {
@@ -199,7 +211,7 @@ export default function GradeCalculator() {
         currentList.forEach(i => totalPlanned += (parseFloat(i.weight) || 0));
 
         if (totalPlanned >= 100) {
-            alert("Total weight is already 100% or more!");
+            notify('warning', "Total weight is already 100% or more!");
             return;
         }
 
@@ -210,6 +222,7 @@ export default function GradeCalculator() {
             ...assessmentsData,
             [selectedCourse]: newList
         });
+        notify('success', 'Final Exam added');
     };
 
     if (!user?.courses || user.courses.length === 0) {

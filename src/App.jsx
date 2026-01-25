@@ -11,6 +11,8 @@ import TodoList from './pages/TodoList';
 import Onboarding from './pages/Onboarding';
 import Settings from './pages/Settings';
 
+import AiStudyTool from './pages/AiStudyTool';
+
 function AppContent() {
   const { user } = useUser();
 
@@ -28,6 +30,7 @@ function AppContent() {
           <Route path="grades" element={<GradeCalculator />} />
           <Route path="gpa" element={<GpaCalculator />} />
           <Route path="todo" element={<TodoList />} />
+          <Route path="study" element={<AiStudyTool />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
@@ -37,6 +40,7 @@ function AppContent() {
 
 import { TimerProvider } from './context/TimerContext';
 import { TaskProvider } from './context/TaskContext';
+import { StudyProvider } from './context/StudyContext';
 
 function App() {
   return (
@@ -44,7 +48,9 @@ function App() {
       <ThemeProvider>
         <TaskProvider>
           <TimerProvider>
-            <AppContent />
+            <StudyProvider>
+              <AppContent />
+            </StudyProvider>
           </TimerProvider>
         </TaskProvider>
       </ThemeProvider>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckSquare, Plus, Trash, Calendar, Tag, X } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
+import { useNotification } from '../context/NotificationContext';
 
 // Helper to format time to AM/PM
 const formatTimeAMPM = (timeStr) => {
@@ -30,7 +31,7 @@ const TodoItem = ({ task, onToggle, onDelete }) => (
                 </span>
                 {task.tag && (
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-opacity-20 ${task.tag === 'School' ? 'text-blue-500 bg-blue-500' :
-                            'text-purple-500 bg-purple-500'
+                        'text-purple-500 bg-purple-500'
                         }`}>
                         {task.tag}
                     </span>
@@ -53,6 +54,7 @@ const TodoItem = ({ task, onToggle, onDelete }) => (
 
 export default function TodoList() {
     const { tasks, addTask, toggleTask, deleteTask } = useTasks();
+    const { notify, confirm } = useNotification();
     const [filter, setFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -63,8 +65,23 @@ export default function TodoList() {
         e.preventDefault();
         if (!newTask.title) return;
         addTask(newTask);
+        notify('success', 'Task created!');
         setNewTask({ title: '', date: '', time: '23:59', tag: 'Personal', priority: 'normal' });
         setIsModalOpen(false);
+    }
+
+    const handleDeleteTask = async (id) => {
+        const isConfirmed = await confirm({
+            title: 'Delete Task?',
+            message: 'Are you sure you want to delete this task?',
+            confirmText: 'Delete',
+            type: 'danger'
+        });
+
+        if (isConfirmed) {
+            deleteTask(id);
+            notify('success', 'Task deleted');
+        }
     }
     // ... existing filter logic ...
 
@@ -122,7 +139,7 @@ export default function TodoList() {
                         <div className="text-center py-10 text-gray-400">No tasks found</div>
                     ) : (
                         filteredTasks.map(task => (
-                            <TodoItem key={task.id} task={task} onToggle={toggleTask} onDelete={deleteTask} />
+                            <TodoItem key={task.id} task={task} onToggle={toggleTask} onDelete={handleDeleteTask} />
                         ))
                     )}
                 </div>
@@ -185,8 +202,8 @@ export default function TodoList() {
                                             type="button"
                                             onClick={() => setNewTask({ ...newTask, tag: cat.label })}
                                             className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border-2 ${newTask.tag === cat.label
-                                                    ? `${cat.color} text-white border-transparent shadow-md transform scale-105`
-                                                    : `bg-transparent ${cat.text} border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5`
+                                                ? `${cat.color} text-white border-transparent shadow-md transform scale-105`
+                                                : `bg-transparent ${cat.text} border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5`
                                                 }`}
                                         >
                                             {cat.label}

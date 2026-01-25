@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Calculator, GraduationCap, CheckSquare, Sun, Moon, Cloud, BookOpen, Settings, Timer } from 'lucide-react';
+import { LayoutDashboard, Calendar, Calculator, GraduationCap, CheckSquare, Sun, Moon, Cloud, BookOpen, Settings, Timer, BrainCircuit } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import { cn } from '../lib/utils';
@@ -16,6 +16,7 @@ export default function Sidebar() {
         { name: 'Grade Calc', path: '/grades', icon: Calculator },
         { name: 'GPA Calc', path: '/gpa', icon: GraduationCap },
         { name: 'To-Do List', path: '/todo', icon: CheckSquare },
+        { name: 'AI Study', path: '/study', icon: BrainCircuit },
         { name: 'Settings', path: '/settings', icon: Settings },
     ];
 
