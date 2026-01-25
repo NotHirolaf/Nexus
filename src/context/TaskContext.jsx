@@ -2,16 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const TaskContext = createContext();
 
-const SAMPLE_TASKS = [
-    { id: 1, title: 'CS 101 Final Project', date: '2026-02-28', tag: 'School', priority: 'high', completed: false },
-    { id: 2, title: 'Apply for Internship', date: '2026-01-30', tag: 'Personal', priority: 'normal', completed: false },
-    { id: 3, title: 'Buy Groceries', date: '2026-01-24', tag: 'Personal', priority: 'normal', completed: true },
-];
-
 export function TaskProvider({ children }) {
     const [tasks, setTasks] = useState(() => {
         const saved = localStorage.getItem('nexus_tasks');
-        return saved ? JSON.parse(saved) : SAMPLE_TASKS;
+        return saved ? JSON.parse(saved) : [];
     });
 
     const [currentTime, setCurrentTime] = useState(new Date());
