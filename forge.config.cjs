@@ -4,6 +4,7 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
+    icon: './public/icon' // Electron automatically adds .ico for Windows, .icns for Mac
   },
   rebuildConfig: {},
   makers: [

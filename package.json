@@ -2,8 +2,10 @@
   "name": "nexus",
   "private": true,
   "version": "0.0.0",
+  "description": "Nexus Student Dashboard - AI Powered Study Tool",
+  "author": "Nexus Team",
   "type": "module",
-  "main": "electron/main.js",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,7 +15,9 @@
     "electron:build": "vite build && electron .",
     "start": "electron-forge start",
     "package": "vite build && electron-forge package",
-    "make": "vite build && electron-forge make"
+    "make": "vite build && electron-forge make",
+    "make:x64": "vite build && electron-forge make --arch=x64",
+    "make:ia32": "vite build && electron-forge make --arch=ia32"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
