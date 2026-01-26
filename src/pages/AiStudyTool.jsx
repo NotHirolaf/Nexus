@@ -123,8 +123,8 @@ export default function AiStudyTool() {
         return (
             <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto py-10">
                 <div className="flex justify-between w-full mb-6 items-center">
-                    <h2 className="text-xl font-bold dark:text-white">{deck.title}</h2>
-                    <span className="text-sm text-gray-500">{currentCardIndex + 1} / {deck.cards.length}</span>
+                    <h2 className="text-xl font-bold text-[var(--app-text-color)]">{deck.title}</h2>
+                    <span className="text-sm text-[var(--text-muted)]">{currentCardIndex + 1} / {deck.cards.length}</span>
                 </div>
 
                 <div
@@ -140,14 +140,14 @@ export default function AiStudyTool() {
                             {!isFlipped ? (
                                 <>
                                     <span className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4">Term</span>
-                                    <h3 className="text-3xl font-bold text-gray-800 dark:text-white">{card.front}</h3>
-                                    <p className="absolute bottom-6 text-xs text-gray-400">Click to reveal definition</p>
+                                    <h3 className="text-3xl font-bold text-[var(--app-text-color)]">{card.front}</h3>
+                                    <p className="absolute bottom-6 text-xs text-[var(--text-muted)]">Click to reveal definition</p>
                                 </>
                             ) : (
                                 <>
                                     <span className="text-xs font-bold text-green-500 uppercase tracking-wider mb-4">Definition</span>
-                                    <p className="text-xl leading-relaxed text-gray-800 dark:text-white">{card.back}</p>
-                                    <p className="absolute bottom-6 text-xs text-gray-400">Click to see term</p>
+                                    <p className="text-xl leading-relaxed text-[var(--app-text-color)]">{card.back}</p>
+                                    <p className="absolute bottom-6 text-xs text-[var(--text-muted)]">Click to see term</p>
                                 </>
                             )}
                         </div>
@@ -187,8 +187,8 @@ export default function AiStudyTool() {
                         <div className="w-24 h-24 bg-white dark:bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl text-4xl">
                             {score / quiz.questions.length >= 0.8 ? '🏆' : score / quiz.questions.length >= 0.5 ? '👍' : '📚'}
                         </div>
-                        <h2 className="text-3xl font-bold dark:text-white mb-2">Quiz Complete!</h2>
-                        <p className="text-gray-500 dark:text-gray-400 mb-6">You scored</p>
+                        <h2 className="text-3xl font-bold text-[var(--app-text-color)] mb-2">Quiz Complete!</h2>
+                        <p className="text-[var(--text-muted)] mb-6">You scored</p>
                         <div className="text-6xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                             {Math.round((score / quiz.questions.length) * 100)}%
                         </div>
@@ -196,10 +196,10 @@ export default function AiStudyTool() {
                     </div>
 
                     <div className="space-y-4 text-left">
-                        <h3 className="font-bold text-gray-700 dark:text-gray-300 ml-2">Answer Key</h3>
+                        <h3 className="font-bold text-[var(--app-text-color)] ml-2">Answer Key</h3>
                         {quiz.questions.map((q, idx) => (
                             <div key={idx} className={`p-4 rounded-xl border ${quizAnswers[idx] === q.answer ? 'bg-green-50 border-green-200 dark:bg-green-900/10' : 'bg-red-50 border-red-200 dark:bg-red-900/10'}`}>
-                                <div className="text-sm font-bold mb-1 dark:text-white">Q{idx + 1}: {q.question}</div>
+                                <div className="text-sm font-bold mb-1 text-[var(--app-text-color)]">Q{idx + 1}: {q.question}</div>
                                 <div className="flex justify-between text-xs">
                                     <span className={quizAnswers[idx] === q.answer ? 'text-green-600' : 'text-red-500'}>
                                         You: {quizAnswers[idx] || 'Skipped'}
@@ -232,7 +232,7 @@ export default function AiStudyTool() {
 
                 <div className="flex-1 flex flex-col justify-center">
                     <span className="text-sm font-bold text-blue-500 uppercase tracking-wider mb-2">Question {currentCardIndex + 1} of {quiz.questions.length}</span>
-                    <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-8 leading-relaxed">
+                    <h3 className="text-2xl font-bold text-[var(--app-text-color)] mb-8 leading-relaxed">
                         {currentQuestion.question}
                     </h3>
 
@@ -334,8 +334,8 @@ export default function AiStudyTool() {
                                 <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl flex items-center justify-center mb-4">
                                     <Layers className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">{deck.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{deck.cards.length} Cards • {deck.date}</p>
+                                <h3 className="text-lg font-bold text-[var(--app-text-color)] mb-1 group-hover:text-blue-600 transition-colors">{deck.title}</h3>
+                                <p className="text-sm text-[var(--text-muted)]">{deck.cards.length} Cards • {deck.date}</p>
                             </div>
                         ))}
                         {quizzes.map(quiz => (
@@ -349,8 +349,8 @@ export default function AiStudyTool() {
                                 <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 rounded-xl flex items-center justify-center mb-4">
                                     <HelpCircle className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-1 group-hover:text-indigo-600 transition-colors">{quiz.title}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">{quiz.questions.length} Questions • {quiz.date}</p>
+                                <h3 className="text-lg font-bold text-[var(--app-text-color)] mb-1 group-hover:text-indigo-600 transition-colors">{quiz.title}</h3>
+                                <p className="text-sm text-[var(--text-muted)]">{quiz.questions.length} Questions • {quiz.date}</p>
                             </div>
                         ))}
                         {flashcardDecks.length === 0 && quizzes.length === 0 && (
@@ -374,7 +374,7 @@ export default function AiStudyTool() {
                                     <FileText className="w-8 h-8 text-blue-500" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg dark:text-white">Upload Material</h3>
+                                    <h3 className="font-bold text-lg text-[var(--app-text-color)]">Upload Material</h3>
                                     <p className="text-sm text-gray-400">PDFs up to 10MB</p>
                                 </div>
                                 <input type="file" accept="application/pdf" onChange={handleFileChange} className="hidden" id="pdf-upload" />
@@ -386,16 +386,16 @@ export default function AiStudyTool() {
 
                             {/* Options */}
                             <div className="glass-panel p-6 rounded-2xl space-y-4">
-                                <h3 className="font-bold text-gray-700 dark:text-gray-300">Configuration</h3>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (e.g. Week 4 Review)" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white" />
+                                <h3 className="font-bold text-[var(--app-text-color)]">Configuration</h3>
+                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (e.g. Week 4 Review)" className="w-full bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-[var(--app-text-color)]" />
                                 <div className="grid grid-cols-2 gap-4">
                                     <button onClick={() => setMode('flashcards')} className={cn("p-4 rounded-xl border-2 text-left transition-all", mode === 'flashcards' ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-transparent bg-gray-50 dark:bg-white/5")}>
                                         <Layers className={cn("w-6 h-6 mb-2", mode === 'flashcards' ? "text-blue-500" : "text-gray-400")} />
-                                        <div className="font-bold text-gray-800 dark:text-white">Flashcards</div>
+                                        <div className="font-bold text-[var(--app-text-color)]">Flashcards</div>
                                     </button>
                                     <button onClick={() => setMode('quiz')} className={cn("p-4 rounded-xl border-2 text-left transition-all", mode === 'quiz' ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20" : "border-transparent bg-gray-50 dark:bg-white/5")}>
                                         <HelpCircle className={cn("w-6 h-6 mb-2", mode === 'quiz' ? "text-indigo-500" : "text-gray-400")} />
-                                        <div className="font-bold text-gray-800 dark:text-white">Quiz</div>
+                                        <div className="font-bold text-[var(--app-text-color)]">Quiz</div>
                                     </button>
                                 </div>
                                 <button onClick={handleGenerate} disabled={!file || isLoading} className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-xl shadow-blue-500/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-lg">
@@ -415,18 +415,18 @@ export default function AiStudyTool() {
                             ) : (
                                 <div className="flex flex-col h-full animate-in fade-in">
                                     <div className="flex justify-between items-center mb-4">
-                                        <h2 className="text-lg font-bold dark:text-white">Preview</h2>
+                                        <h2 className="text-lg font-bold text-[var(--app-text-color)]">Preview</h2>
                                         <button onClick={handleSave} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition-all flex items-center gap-2"><Save className="w-4 h-4" /> Save</button>
                                     </div>
                                     <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                                         {mode === 'flashcards' ? generatedContent.map((c, i) => (
                                             <div key={i} className="bg-white dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-white/10">
-                                                <div className="font-bold text-gray-800 dark:text-white">{c.front}</div>
-                                                <div className="text-sm text-gray-500 mt-2">{c.back}</div>
+                                                <div className="font-bold text-[var(--app-text-color)]">{c.front}</div>
+                                                <div className="text-sm text-[var(--text-muted)] mt-2">{c.back}</div>
                                             </div>
                                         )) : generatedContent.map((q, i) => (
                                             <div key={i} className="bg-white dark:bg-black/20 p-4 rounded-xl border border-gray-200 dark:border-white/10">
-                                                <div className="font-bold mb-2 text-gray-800 dark:text-white">{q.question}</div>
+                                                <div className="font-bold mb-2 text-[var(--app-text-color)]">{q.question}</div>
                                                 <div className="grid grid-cols-2 gap-2">
                                                     {q.options.map((opt, oi) => (
                                                         <div key={oi} className={cn("text-xs p-2 rounded border", opt === q.answer ? "bg-green-50 border-green-200 text-green-700" : "bg-gray-50 text-gray-500")}>{opt}</div>

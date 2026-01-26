@@ -273,7 +273,7 @@ export default function Timetable() {
         <div className="h-[calc(100vh-8rem)] flex flex-col relative">
             {/* Header */}
             <div className="flex justify-between items-center mb-6 px-2">
-                <h1 className="text-3xl font-bold text-black dark:text-white">Timetable</h1>
+                <h1 className="text-3xl font-bold text-[var(--app-text-color)]">Timetable</h1>
                 <div className="flex gap-2">
                     <input type="file" accept=".ics" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                     <button onClick={() => fileInputRef.current?.click()} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center gap-2">
@@ -295,10 +295,10 @@ export default function Timetable() {
                 className="glass-panel flex-1 rounded-2xl overflow-hidden relative flex flex-col select-none"
             >
                 {/* Header Row */}
-                <div className="flex border-b border-gray-200 dark:border-white/10 bg-white/30 dark:bg-black/20 z-20 relative">
+                <div className="flex border-b border-slate-400/50 dark:border-white/10 bg-white/30 dark:bg-black/20 z-20 relative">
                     <div className="w-16 p-3 flex-shrink-0 text-center text-xs font-bold text-p">TIME</div>
                     {days.map(day => (
-                        <div key={day} className="flex-1 p-3 text-center text-sm font-bold text-p border-l border-gray-200/50 dark:border-white/5">
+                        <div key={day} className="flex-1 p-3 text-center text-sm font-bold text-p border-l border-slate-400/50 dark:border-white/5">
                             {day}
                         </div>
                     ))}
@@ -306,16 +306,16 @@ export default function Timetable() {
 
                 {/* Calendar Body */}
                 <div
-                    className="flex-1 overflow-y-auto relative bg-white/20 dark:bg-black/10"
+                    className="flex-1 overflow-y-auto relative bg-white/50 dark:bg-black/10"
                     onDragOver={handleDragOver}
                     onDrop={handleDrop}
                 >
                     {/* Grid Lines */}
                     {times.map((time) => (
-                        <div key={time} className="flex h-16 border-b border-gray-200/30 dark:border-white/5 pointer-events-none">
+                        <div key={time} className="flex h-16 border-b border-slate-400/50 dark:border-white/5 pointer-events-none">
                             <div className="w-16 flex-shrink-0 p-2 text-right text-xs text-p opacity-50 font-medium">{time}</div>
                             {days.map((d, i) => (
-                                <div key={`${d}-${time}`} className="flex-1 border-l border-gray-200/30 dark:border-white/5 bg-white/5 dark:bg-white/[0.02]"></div>
+                                <div key={`${d}-${time}`} className="flex-1 border-l border-slate-400/50 dark:border-white/5 bg-white/5 dark:bg-white/[0.02]"></div>
                             ))}
                         </div>
                     ))}
@@ -347,7 +347,7 @@ export default function Timetable() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200 dark:border-slate-700">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                            <h2 className="text-xl font-bold text-[var(--app-text-color)]">
                                 {editingCourse ? 'Edit Class' : 'Add New Class'}
                             </h2>
                             <button onClick={closeModal} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white">

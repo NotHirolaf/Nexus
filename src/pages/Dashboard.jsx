@@ -7,9 +7,9 @@ import { Link } from 'react-router-dom';
 const StatCard = ({ title, value, subtext, icon: Icon, colorClass }) => (
     <div className="glass-card p-6 flex items-start justify-between hover:scale-[1.02] transition-transform duration-300">
         <div>
-            <h3 className="text-sm font-bold text-[var(--app-text-color)] dark:text-gray-400 mb-1">{title}</h3>
-            <div className="text-3xl font-bold text-[var(--app-text-color)] dark:text-white mb-2">{value}</div>
-            <p className="text-xs font-medium text-gray-600 dark:text-gray-500">{subtext}</p>
+            <h3 className="text-sm font-bold text-[var(--text-muted)] mb-1">{title}</h3>
+            <div className="text-3xl font-bold text-[var(--app-text-color)] mb-2">{value}</div>
+            <p className="text-xs font-medium text-[var(--text-muted)]">{subtext}</p>
         </div>
         <div className={`p-3 rounded-xl ${colorClass} bg-opacity-20`}>
             <Icon className={`w-6 h-6 ${colorClass.replace('bg-', 'text-')}`} />
@@ -57,9 +57,9 @@ const TaskItem = ({ task }) => {
         <div className="flex items-center justify-between p-3 rounded-lg hover:bg-white/30 dark:hover:bg-white/5 transition-colors group cursor-pointer border-b border-white/5 last:border-0">
             <div className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${task.priority === 'high' ? 'bg-red-500' : 'bg-green-500'}`} />
-                <span className={`text-sm font-bold text-[var(--app-text-color)] dark:text-gray-200 group-hover:text-blue-600 transition-colors ${task.completed ? 'line-through opacity-50' : ''}`}>{task.title}</span>
+                <span className={`text-sm font-bold text-[var(--app-text-color)] group-hover:text-blue-600 transition-colors ${task.completed ? 'line-through opacity-50' : ''}`}>{task.title}</span>
             </div>
-            <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
+            <span className="text-xs font-bold text-[var(--text-muted)]">
                 {getTaskTimeDisplay(task.date, task.time, currentTime)}
             </span>
         </div>
@@ -151,15 +151,15 @@ export default function Dashboard() {
 
     return (
         <div className="p-2 md:p-6 space-y-6">
-            <div className="flex justify-between items-center bg-white/50 dark:bg-black/20 p-4 rounded-2xl backdrop-blur-sm border border-white/20">
+            <div className="flex justify-between items-center dashboard-banner p-6 rounded-2xl border border-blue-200/50 dark:border-white/10 shadow-lg shadow-blue-500/5 dark:shadow-none transition-all">
                 <div>
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
+                    <h1 className="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-700 dark:from-blue-400 dark:to-indigo-400">
                         Hello, {user?.name?.split(' ')[0] || 'Student'}!
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Welcome back to your workspace</p>
+                    <p className="text-slate-600 dark:text-gray-400 text-sm font-bold mt-1">Welcome back to your workspace</p>
                 </div>
-                <div className="glass px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300">
-                    <Clock className="w-4 h-4 text-blue-500" />
+                <div className="glass px-5 py-3 rounded-full flex items-center gap-2 text-sm font-bold text-[var(--app-text-color)] shadow-sm border border-white/50">
+                    <Clock className="w-4 h-4 text-blue-600 dark:text-blue-500" />
                     <span>Winter Semester 2026</span>
                 </div>
             </div>
@@ -193,7 +193,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Next Classes / Schedule Preview */}
                 <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold text-[var(--app-text-color)] dark:text-white mb-4 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-[var(--app-text-color)] mb-4 flex items-center gap-2">
                         <Clock className="w-5 h-5 text-blue-500" /> Today's Schedule
                     </h2>
                     <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
@@ -209,8 +209,8 @@ export default function Dashboard() {
                                             }`}
                                     >
                                         <div>
-                                            <h3 className="font-bold text-[var(--app-text-color)] dark:text-gray-100">{cl.name}</h3>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            <h3 className="font-bold text-[var(--app-text-color)]">{cl.name}</h3>
+                                            <p className="text-sm text-[var(--text-muted)]">
                                                 {cl.room} • {formatTime(cl.startTime)} - {formatTime(cl.startTime + cl.duration)}
                                             </p>
                                         </div>
@@ -234,7 +234,7 @@ export default function Dashboard() {
 
                 {/* To-Do Quick View */}
                 <div className="glass-card p-6">
-                    <h2 className="text-xl font-bold text-[var(--app-text-color)] dark:text-white mb-4 flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-[var(--app-text-color)] mb-4 flex items-center gap-2">
                         <CheckCircle className="w-5 h-5 text-green-500" /> Priority Tasks
                     </h2>
                     <div className="space-y-1">

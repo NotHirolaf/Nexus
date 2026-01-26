@@ -83,8 +83,8 @@ export default function GpaCalculator() {
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Award className="w-32 h-32" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400">Cumulative GPA</h3>
-                    <div className="mt-4 text-6xl font-black text-gray-800 dark:text-white tracking-tighter">
+                    <h3 className="text-lg font-medium text-[var(--text-secondary)]">Cumulative GPA</h3>
+                    <div className="mt-4 text-6xl font-black text-[var(--app-text-color)] tracking-tighter">
                         {cGPA}
                     </div>
                     <div className="mt-4 text-sm text-green-500 font-medium">
@@ -97,8 +97,8 @@ export default function GpaCalculator() {
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Layers className="w-32 h-32" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400">Credits Earned</h3>
-                    <div className="mt-4 text-6xl font-black text-gray-800 dark:text-white tracking-tighter">
+                    <h3 className="text-lg font-medium text-[var(--text-secondary)]">Credits Earned</h3>
+                    <div className="mt-4 text-6xl font-black text-[var(--app-text-color)] tracking-tighter">
                         {totalCredits}
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-sm text-gray-500 font-medium">
@@ -110,9 +110,9 @@ export default function GpaCalculator() {
                 </div>
 
                 {/* Input Form */}
-                <div className="glass-panel p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl shadow-xl shadow-blue-500/20">
-                    <h3 className="font-bold mb-4 flex items-center gap-2"><Plus className="w-5 h-5" /> Add Semester</h3>
-                    <form onSubmit={handleAdd} className="space-y-3">
+                <div className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-3xl shadow-xl shadow-blue-500/20 relative overflow-hidden">
+                    <h3 className="font-bold mb-4 flex items-center gap-2 relative z-10"><Plus className="w-5 h-5" /> Add Semester</h3>
+                    <form onSubmit={handleAdd} className="space-y-3 relative z-10">
                         <div className="grid grid-cols-2 gap-2">
                             <div>
                                 <label className="text-xs opacity-70 mb-1 block">Year</label>
@@ -169,7 +169,7 @@ export default function GpaCalculator() {
 
             {/* Semester List */}
             <div className="glass-card p-6">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">Semester History</h2>
+                <h2 className="text-xl font-bold text-[var(--app-text-color)] mb-6">Semester History</h2>
                 {semesters.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">No semester data added yet.</div>
                 ) : (
@@ -179,13 +179,13 @@ export default function GpaCalculator() {
                                 <div className="flex items-center gap-4">
                                     <div className="w-2 h-10 rounded-full bg-blue-500"></div>
                                     <div>
-                                        <h4 className="font-bold text-gray-800 dark:text-white">{sem.term} {sem.year}</h4>
-                                        <p className="text-xs text-gray-500">{sem.credits} Credits</p>
+                                        <h4 className="font-bold text-[var(--app-text-color)]">{sem.term} {sem.year}</h4>
+                                        <p className="text-xs text-[var(--text-muted)]">{sem.credits} Credits</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-6">
                                     <div className="text-right">
-                                        <div className="text-xl font-bold text-gray-800 dark:text-white">{sem.gpa}</div>
+                                        <div className="text-xl font-bold text-[var(--app-text-color)]">{sem.gpa}</div>
                                         <p className="text-xs text-gray-500">GPA</p>
                                     </div>
                                     <button

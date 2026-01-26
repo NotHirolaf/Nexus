@@ -24,6 +24,9 @@ html.hybrid {
   --bg-panel: rgba(55, 65, 81, 0.6);
   --bg-glass: rgba(55, 65, 81, 0.7);
 
+  --banner-bg: rgba(0, 0, 0, 0.2);
+  /* Hybrid Banner (Dark Glass) */
+
   --app-text-color: #f9fafb;
   --text-primary: #f9fafb;
   --text-secondary: #e5e7eb;
@@ -39,6 +42,9 @@ html.dark {
   --bg-panel: rgba(15, 23, 42, 0.6);
   --bg-glass: rgba(15, 23, 42, 0.7);
 
+  --banner-bg: rgba(0, 0, 0, 0.2);
+  /* Dark Banner */
+
   --app-text-color: #f8fafc;
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
@@ -53,6 +59,29 @@ html.dark {
 /* =========================================
    BASE & UTILITIES
    ========================================= */
+/* PURE WHITE MODE (Now Silver-ish as requested) */
+html.white {
+  --bg-app: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 100%);
+  /* Silver Gradient */
+  --bg-panel: rgba(255, 255, 255, 0.7);
+  --bg-glass: rgba(255, 255, 255, 0.8);
+
+  --banner-bg: linear-gradient(to right, #dbeafe, #eff6ff, #e0e7ff);
+  /* Light Mode Blue Gradient */
+
+  --app-text-color: #0f172a;
+  /* Slate 900 */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  /* Slate 700 */
+  --text-muted: #64748b;
+  /* Slate 500 */
+
+  --glass-border: rgba(15, 23, 42, 0.1);
+  /* Darker border for visibility */
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
 @layer base {
   body {
     @apply font-sans antialiased transition-colors duration-300;
@@ -63,18 +92,8 @@ html.dark {
 }
 
 @layer utilities {
-  .light {
-    --bg-app: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-    --bg-panel: rgba(55, 65, 81, 0.85);
-    --bg-glass: rgba(55, 65, 81, 0.9);
-
-    --app-text-color: #000000;
-    --text-primary: #f9fafb;
-    --text-secondary: #e5e7eb;
-    --text-muted: #9ca3af;
-
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  .dashboard-banner {
+    background: var(--banner-bg);
   }
 
   .glass {

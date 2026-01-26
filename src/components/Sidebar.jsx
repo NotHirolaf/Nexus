@@ -31,8 +31,8 @@ export default function Sidebar() {
                         className="w-10 h-10 object-contain drop-shadow-md"
                     />
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-[var(--app-text-color)] dark:text-gray-400 uppercase tracking-wider leading-tight whitespace-normal max-w-[140px]">{user?.university || 'University'}</span>
-                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#002A5C] to-[#2B548A] dark:from-sky-300 dark:to-white">
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-tight whitespace-normal max-w-[140px]">{user?.university || 'University'}</span>
+                        <span className="text-xl font-bold bg-clip-text text-[var(--app-text-color)]">
                             Nexus
                         </span>
                     </div>
@@ -49,7 +49,7 @@ export default function Sidebar() {
                                     "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group",
                                     isActive
                                         ? "bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200/50 dark:border-blue-500/30"
-                                        : "text-[var(--app-text-color)] dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-blue-600 dark:hover:text-blue-300"
+                                        : "text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-blue-600 dark:hover:text-blue-300"
                                 )
                             }
                         >
@@ -65,15 +65,15 @@ export default function Sidebar() {
                         onClick={toggleTheme}
                         className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-white/20 dark:bg-black/20 hover:bg-white/40 dark:hover:bg-white/10 transition-colors border border-[var(--glass-border)]"
                     >
-                        <span className="text-sm font-bold text-[var(--app-text-color)] dark:text-gray-300">
-                            {theme === 'dark' ? 'Dark Mode' : theme === 'hybrid' ? 'Hybrid Mode' : 'Light Mode'}
+                        <span className="text-sm font-bold text-[var(--app-text-color)]">
+                            {theme === 'dark' ? 'Dark Mode' : theme === 'white' ? 'Light Mode' : 'Hybrid Mode'}
                         </span>
                         {theme === 'dark' ? (
                             <Moon className="w-5 h-5 text-blue-400" />
-                        ) : theme === 'hybrid' ? (
-                            <Cloud className="w-5 h-5 text-gray-400" />
+                        ) : theme === 'white' ? (
+                            <Sun className="w-5 h-5 text-orange-500" />
                         ) : (
-                            <Sun className="w-5 h-5 text-amber-500" />
+                            <Cloud className="w-5 h-5 text-gray-400" />
                         )}
                     </button>
                 </div>

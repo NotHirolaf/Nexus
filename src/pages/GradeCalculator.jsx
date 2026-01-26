@@ -29,7 +29,7 @@ const GradeRow = ({ assessment, onUpdate, onDelete }) => {
                 type="text"
                 value={assessment.name}
                 onChange={(e) => onUpdate({ ...assessment, name: e.target.value })}
-                className="flex-1 bg-transparent border-none outline-none font-medium text-gray-800 dark:text-gray-200 placeholder-gray-400"
+                className="flex-1 bg-transparent border-none outline-none font-medium text-[var(--app-text-color)] placeholder-gray-400"
                 placeholder="Assessment Name"
             />
             <div className="flex items-center gap-2">
@@ -39,10 +39,10 @@ const GradeRow = ({ assessment, onUpdate, onDelete }) => {
                     onChange={(e) => handleInput('weight', e.target.value)}
                     min="0"
                     max="100"
-                    className="w-16 bg-white/50 dark:bg-black/20 rounded-lg px-2 py-1 text-center text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
+                    className="w-16 bg-white/50 dark:bg-black/20 rounded-lg px-2 py-1 text-center text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all text-[var(--app-text-color)]"
                     placeholder="Wt %"
                 />
-                <span className="text-gray-400 text-xs">%</span>
+                <span className="text-[var(--text-muted)] text-xs">%</span>
             </div>
             <div className="flex items-center gap-2">
                 <input
@@ -51,10 +51,10 @@ const GradeRow = ({ assessment, onUpdate, onDelete }) => {
                     onChange={(e) => handleInput('score', e.target.value)}
                     min="0"
                     max="100"
-                    className="w-16 bg-white/50 dark:bg-black/20 rounded-lg px-2 py-1 text-center text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
+                    className="w-16 bg-white/50 dark:bg-black/20 rounded-lg px-2 py-1 text-center text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all text-[var(--app-text-color)]"
                     placeholder="Score"
                 />
-                <span className="text-gray-400 text-xs">/100</span>
+                <span className="text-[var(--text-muted)] text-xs">/100</span>
             </div>
             <button
                 onClick={onDelete}
@@ -253,12 +253,12 @@ export default function GradeCalculator() {
         <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Grade Calculator</h1>
+                    <h1 className="text-3xl font-bold text-[var(--app-text-color)]">Grade Calculator</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Track your performance per course.</p>
                 </div>
 
                 {/* Visual Grade Badge */}
-                <div className="glass px-6 py-3 rounded-2xl flex items-center gap-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg border-0 w-[300px] flex-shrink-0">
+                <div className="px-6 py-3 rounded-2xl flex items-center gap-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg border-0 w-[300px] flex-shrink-0">
                     <div className="text-right flex-1">
                         <div className="text-xs font-medium opacity-80 uppercase tracking-wider">Projected</div>
                         <div className="text-3xl font-bold leading-none flex items-baseline justify-end gap-2">
@@ -281,7 +281,7 @@ export default function GradeCalculator() {
                         <div className="relative z-50">
                             <button
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="flex items-center gap-3 bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 font-bold text-lg text-gray-800 dark:text-gray-200 min-w-[200px] hover:bg-white/60 dark:hover:bg-white/10 transition-all"
+                                className="flex items-center gap-3 bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 font-bold text-lg text-[var(--app-text-color)] min-w-[200px] hover:bg-white/60 dark:hover:bg-white/10 transition-all"
                             >
                                 {selectedCourse}
                                 <ChevronDown className={`w-5 h-5 ml-auto text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -303,7 +303,7 @@ export default function GradeCalculator() {
                                                 }}
                                                 className={`w-full text-left px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCourse === course
                                                     ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
-                                                    : 'text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10'
+                                                    : 'text-[var(--app-text-color)] hover:bg-black/5 dark:hover:bg-white/10'
                                                     }`}
                                             >
                                                 {course}
@@ -359,8 +359,8 @@ export default function GradeCalculator() {
                                     />
                                 </svg>
                                 <div className="flex flex-col items-center">
-                                    <span className="text-4xl font-bold text-gray-800 dark:text-white">{Math.round(gradeInfo.totalWeight)}</span>
-                                    <span className="text-xs text-gray-400">% Completed</span>
+                                    <span className="text-4xl font-bold text-[var(--app-text-color)]">{Math.round(gradeInfo.totalWeight)}</span>
+                                    <span className="text-xs text-[var(--text-muted)]">% Completed</span>
                                 </div>
                             </div>
                             <div className="text-sm font-medium text-gray-600 dark:text-gray-300">
@@ -389,7 +389,7 @@ export default function GradeCalculator() {
                                         setTargetGrade(parseFloat(val));
                                     }
                                 }}
-                                className="w-16 bg-transparent font-bold text-lg text-gray-800 dark:text-white outline-none"
+                                className="w-16 bg-transparent font-bold text-lg text-[var(--app-text-color)] outline-none"
                             />
                             <span className="text-sm font-bold text-gray-400">%</span>
                         </div>

@@ -60,7 +60,7 @@ export default function Settings() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-black dark:text-white flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-[var(--app-text-color)] flex items-center gap-3">
                     <SettingsIcon className="w-8 h-8 text-gray-500" />
                     Settings
                 </h1>
@@ -70,14 +70,14 @@ export default function Settings() {
             {/* Course Management */}
             <div className="glass-panel p-8 rounded-2xl space-y-6">
                 <div>
-                    <h3 className="text-xl font-bold text-black dark:text-white mb-1">My Courses</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">Update your semester listing.</p>
+                    <h3 className="text-xl font-bold text-[var(--app-text-color)] mb-1">My Courses</h3>
+                    <p className="text-[var(--text-muted)] text-sm">Update your semester listing.</p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
                     {user?.courses.map(course => (
-                        <div key={course} className="flex items-center gap-2 pl-4 pr-2 py-2 bg-white/50 dark:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 group">
-                            <span className="font-medium text-black dark:text-gray-200">{course}</span>
+                        <div key={course} className="flex items-center gap-2 pl-4 pr-2 py-2 bg-white/90 dark:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 group shadow-sm">
+                            <span className="font-bold text-[var(--app-text-color)]">{course}</span>
                             <button
                                 onClick={() => handleDeleteCourse(course)}
                                 className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
@@ -94,7 +94,7 @@ export default function Settings() {
                         value={newCourse}
                         onChange={e => setNewCourse(e.target.value)}
                         placeholder="Add new course (e.g. Physics 201)"
-                        className="flex-1 bg-white/50 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                        className="flex-1 bg-white/80 dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 text-[var(--app-text-color)] placeholder-gray-500"
                     />
                     <button
                         type="submit"
@@ -112,8 +112,8 @@ export default function Settings() {
                         <AlertTriangle className="w-6 h-6" />
                     </div>
                     <div className="space-y-2 flex-1">
-                        <h3 className="text-xl font-bold text-black dark:text-white">Danger Zone</h3>
-                        <p className="text-black dark:text-gray-400 text-sm leading-relaxed">
+                        <h3 className="text-xl font-bold text-[var(--app-text-color)]">Danger Zone</h3>
+                        <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                             This action will permanently delete all your local data, including courses, grades, schedule, and preferences.
                             The application will be reset to its initial state, as if you just installed it.
                         </p>
