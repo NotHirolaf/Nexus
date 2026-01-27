@@ -1,17 +1,48 @@
 import React, { useState } from 'react';
 import { useUser } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { ArrowRight, BookOpen, Plus, X } from 'lucide-react';
+import { ArrowRight, ArrowLeft, BookOpen, Plus, X, Cloud } from 'lucide-react';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Onboarding() {
     const { saveUser } = useUser();
     const { theme } = useTheme();
+    const { signInWithGoogle, isAuthenticated, user: authUser, isLoading: authLoading } = useAuth();
     const [name, setName] = useState('');
     const [university, setUniversity] = useState('');
     const [credits, setCredits] = useState('');
     const [courses, setCourses] = useState([]);
     const [currentCourse, setCurrentCourse] = useState('');
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(0); // Start at step 0 (sign-in options)
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const [signInError, setSignInError] = useState(null);
+
+    const handleGoogleSignIn = async () => {
+        setIsSigningIn(true);
+        setSignInError(null);
+        try {
+            const result = await signInWithGoogle();
+            if (result.success) {
+                // After successful sign-in, go to step 1 (name)
+                // Pre-fill name from Google account if available
+                if (result.user?.displayName) {
+                    setName(result.user.displayName);
+                }
+                setStep(1);
+            } else {
+                setSignInError(result.error || 'Sign in failed');
+            }
+        } catch (error) {
+            setSignInError(error.message);
+        } finally {
+            setIsSigningIn(false);
+        }
+    };
+
+    const handleContinueAsGuest = () => {
+        setStep(1);
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -46,10 +77,16 @@ export default function Onboarding() {
         setCourses(courses.filter((_, i) => i !== index));
     };
 
+    const handleBack = () => {
+        if (step > 0) {
+            setStep((prev) => prev - 1);
+        }
+    };
+
     return (
         <div className={`min-h-screen flex items-center justify-center p-4 transition-colors duration-500 ${theme === 'dark'
-                ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900'
-                : 'bg-gradient-to-br from-blue-100 via-blue-50 to-white'
+            ? 'bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900'
+            : 'bg-gradient-to-br from-blue-100 via-blue-50 to-white'
             }`}>
             <div className={`max-w-md w-full p-8 rounded-3xl relative overflow-hidden transition-all duration-300 glass-panel ${theme === 'dark' ? 'border-white/10' : 'border-white/40'
                 }`}>
@@ -76,6 +113,42 @@ export default function Onboarding() {
                     </p>
 
                     <form className="space-y-6">
+                        {/* Step 0: Sign-in options */}
+                        <div className={`transition-all duration-300 ${step === 0 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full hidden'}`}>
+                            <div className="space-y-4">
+                                <GoogleSignInButton
+                                    onClick={handleGoogleSignIn}
+                                    isLoading={isSigningIn || authLoading}
+                                />
+
+                                {signInError && (
+                                    <p className="text-red-400 text-sm text-center">{signInError}</p>
+                                )}
+
+                                <div className="flex items-center gap-4 my-6">
+                                    <div className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/20' : 'bg-slate-200'}`}></div>
+                                    <span className={`text-sm ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>or</span>
+                                    <div className={`flex-1 h-px ${theme === 'dark' ? 'bg-white/20' : 'bg-slate-200'}`}></div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleContinueAsGuest}
+                                    className={`w-full px-6 py-3.5 rounded-xl font-medium transition-all ${theme === 'dark'
+                                        ? 'bg-white/10 hover:bg-white/15 text-white border border-white/10'
+                                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                                        }`}
+                                >
+                                    Continue as Guest
+                                </button>
+
+                                <p className={`text-xs text-center mt-4 ${theme === 'dark' ? 'text-white/40' : 'text-slate-400'}`}>
+                                    <Cloud className="w-3 h-3 inline mr-1" />
+                                    Sign in to sync your data across devices
+                                </p>
+                            </div>
+                        </div>
+
                         {/* Step 1: Name */}
                         <div className={`transition-all duration-300 ${step === 1 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full hidden'}`}>
                             <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-blue-100' : 'text-slate-700'
@@ -201,28 +274,46 @@ export default function Onboarding() {
                             </div>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            disabled={
-                                (step === 1 && !name.trim()) ||
-                                (step === 2 && !university.trim()) ||
-                                (step === 3 && !credits.trim()) ||
-                                (step === 4 && courses.length === 0 && !currentCourse.trim())
-                            }
-                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                        >
-                            {step === 4 ? 'Get Started' : 'Continue'} <ArrowRight className="w-5 h-5" />
-                        </button>
+                        {step > 0 && (
+                            <div className="flex gap-3">
+                                {step > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleBack}
+                                        className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${theme === 'dark'
+                                            ? 'bg-white/10 hover:bg-white/20 text-white'
+                                            : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                                            }`}
+                                    >
+                                        <ArrowLeft className="w-5 h-5" /> Back
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    disabled={
+                                        (step === 1 && !name.trim()) ||
+                                        (step === 2 && !university.trim()) ||
+                                        (step === 3 && !credits.trim()) ||
+                                        (step === 4 && courses.length === 0 && !currentCourse.trim())
+                                    }
+                                    className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                >
+                                    {step === 4 ? 'Get Started' : 'Continue'} <ArrowRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
 
-                        <div className="flex justify-center gap-2 mt-4">
-                            {[1, 2, 3, 4].map((s) => (
-                                <div key={s} className={`w-2 h-2 rounded-full transition-colors ${step >= s
-                                    ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
-                                    : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
-                                    }`}></div>
-                            ))}
-                        </div>
+                        {step > 0 && (
+                            <div className="flex justify-center gap-2 mt-4">
+                                {[1, 2, 3, 4].map((s) => (
+                                    <div key={s} className={`w-2 h-2 rounded-full transition-colors ${step >= s
+                                        ? (theme === 'dark' ? 'bg-white' : 'bg-blue-600')
+                                        : (theme === 'dark' ? 'bg-white/20' : 'bg-slate-300')
+                                        }`}></div>
+                                ))}
+                            </div>
+                        )}
                     </form>
                 </div>
             </div>

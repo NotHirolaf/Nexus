@@ -1,14 +1,58 @@
 
 import React, { useState } from 'react';
-import { Trash2, AlertTriangle, Check, RefreshCw, Settings as SettingsIcon, Plus, X } from 'lucide-react';
+import { Trash2, AlertTriangle, Check, RefreshCw, Settings as SettingsIcon, Plus, X, User, LogOut, Cloud, CloudOff, Link } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
+import { useDataSync } from '../context/DataSyncContext';
 import { useNotification } from '../context/NotificationContext';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Settings() {
-    const { user, updateCourses } = useUser();
+    const { user, updateCourses, clearUser } = useUser();
+    const { user: authUser, isAuthenticated, signInWithGoogle, signOut } = useAuth();
+    const { isSyncing, lastSync, storageMode } = useDataSync();
     const { notify, confirm } = useNotification();
     const [isResetting, setIsResetting] = useState(false);
     const [newCourse, setNewCourse] = useState('');
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const [isSigningOut, setIsSigningOut] = useState(false);
+
+    const handleLinkAccount = async () => {
+        setIsSigningIn(true);
+        try {
+            const result = await signInWithGoogle();
+            if (result.success) {
+                notify('success', 'Account linked! Your data is now syncing to the cloud.');
+            } else {
+                notify('error', result.error || 'Failed to link account');
+            }
+        } catch (error) {
+            notify('error', error.message);
+        } finally {
+            setIsSigningIn(false);
+        }
+    };
+
+    const handleSignOut = async () => {
+        const isConfirmed = await confirm({
+            title: 'Sign Out?',
+            message: 'Your data will remain on this device but won\'t sync until you sign back in.',
+            confirmText: 'Sign Out',
+            type: 'warning'
+        });
+
+        if (isConfirmed) {
+            setIsSigningOut(true);
+            try {
+                await signOut();
+                notify('success', 'Signed out successfully');
+            } catch (error) {
+                notify('error', 'Failed to sign out');
+            } finally {
+                setIsSigningOut(false);
+            }
+        }
+    };
 
     const handleAddCourse = (e) => {
         e.preventDefault();
@@ -65,6 +109,90 @@ export default function Settings() {
                     Settings
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your application preferences and data.</p>
+            </div>
+
+            {/* Account Section */}
+            <div className="glass-panel p-8 rounded-2xl space-y-6">
+                <div>
+                    <h3 className="text-xl font-bold text-[var(--app-text-color)] mb-1 flex items-center gap-2">
+                        <User className="w-5 h-5" />
+                        Account
+                    </h3>
+                    <p className="text-[var(--text-muted)] text-sm">Manage your account and sync settings.</p>
+                </div>
+
+                {isAuthenticated && authUser ? (
+                    <div className="space-y-4">
+                        {/* Signed in view */}
+                        <div className="flex items-center gap-4 p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                            {authUser.photoURL ? (
+                                <img
+                                    src={authUser.photoURL}
+                                    alt={authUser.displayName || 'User'}
+                                    className="w-12 h-12 rounded-full"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                                    {(authUser.displayName || authUser.email || 'U')[0].toUpperCase()}
+                                </div>
+                            )}
+                            <div className="flex-1">
+                                <p className="font-medium text-[var(--app-text-color)]">{authUser.displayName || 'User'}</p>
+                                <p className="text-sm text-[var(--text-muted)]">{authUser.email}</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                                {isSyncing ? (
+                                    <span className="flex items-center gap-1 text-blue-500">
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                        Syncing...
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-1 text-green-500">
+                                        <Cloud className="w-4 h-4" />
+                                        Synced
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {lastSync && (
+                            <p className="text-xs text-[var(--text-muted)]">
+                                Last synced: {lastSync.toLocaleString()}
+                            </p>
+                        )}
+
+                        <button
+                            onClick={handleSignOut}
+                            disabled={isSigningOut}
+                            className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium transition-colors disabled:opacity-50"
+                        >
+                            {isSigningOut ? (
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <LogOut className="w-4 h-4" />
+                            )}
+                            Sign Out
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {/* Guest view */}
+                        <div className="flex items-center gap-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl border border-yellow-200 dark:border-yellow-700/30">
+                            <CloudOff className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
+                            <div className="flex-1">
+                                <p className="font-medium text-[var(--app-text-color)]">You're using Guest Mode</p>
+                                <p className="text-sm text-[var(--text-muted)]">Your data is only stored on this device. Sign in to sync across devices.</p>
+                            </div>
+                        </div>
+
+                        <GoogleSignInButton onClick={handleLinkAccount} isLoading={isSigningIn} />
+
+                        <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
+                            <Link className="w-3 h-3" />
+                            Linking will migrate your local data to the cloud
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Course Management */}

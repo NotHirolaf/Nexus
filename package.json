@@ -23,6 +23,7 @@
     "@google/generative-ai": "^0.24.1",
     "clsx": "^2.1.1",
     "electron-squirrel-startup": "^1.0.1",
+    "firebase": "^12.8.0",
     "ical.js": "^2.2.1",
     "lucide-react": "^0.563.0",
     "pdfjs-dist": "^5.4.530",
