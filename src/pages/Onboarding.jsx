@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
+import { useDataSync } from '../context/DataSyncContext';
 import { useTheme } from '../context/ThemeContext';
-import { ArrowRight, ArrowLeft, BookOpen, Plus, X, Cloud } from 'lucide-react';
+import { ArrowRight, ArrowLeft, BookOpen, Plus, X, Cloud, RefreshCw } from 'lucide-react';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Onboarding() {
     const { saveUser } = useUser();
     const { theme } = useTheme();
     const { signInWithGoogle, isAuthenticated, user: authUser, isLoading: authLoading } = useAuth();
+    const { loadData } = useDataSync();
     const [name, setName] = useState('');
     const [university, setUniversity] = useState('');
     const [credits, setCredits] = useState('');
@@ -17,6 +19,7 @@ export default function Onboarding() {
     const [step, setStep] = useState(0); // Start at step 0 (sign-in options)
     const [isSigningIn, setIsSigningIn] = useState(false);
     const [signInError, setSignInError] = useState(null);
+    const [isCheckingData, setIsCheckingData] = useState(false);
 
     const handleGoogleSignIn = async () => {
         setIsSigningIn(true);
@@ -24,12 +27,25 @@ export default function Onboarding() {
         try {
             const result = await signInWithGoogle();
             if (result.success) {
-                // After successful sign-in, go to step 1 (name)
-                // Pre-fill name from Google account if available
-                if (result.user?.displayName) {
-                    setName(result.user.displayName);
-                }
-                setStep(1);
+                // After successful sign-in, check if user has existing data
+                // The App.jsx will re-render when UserContext loads the cloud data
+                // If cloud data exists, it will automatically show Dashboard
+                // If no cloud data, we need to show onboarding form
+                setIsCheckingData(true);
+
+                // Wait a moment for data sync to complete
+                setTimeout(async () => {
+                    const existingData = await loadData('user');
+                    if (!existingData) {
+                        // No existing data, show onboarding form
+                        if (result.user?.displayName) {
+                            setName(result.user.displayName);
+                        }
+                        setStep(1);
+                    }
+                    // If existingData exists, App.jsx will handle navigation to Dashboard
+                    setIsCheckingData(false);
+                }, 1500);
             } else {
                 setSignInError(result.error || 'Sign in failed');
             }
@@ -113,8 +129,18 @@ export default function Onboarding() {
                     </p>
 
                     <form className="space-y-6">
+                        {/* Loading state when checking for existing data */}
+                        {isCheckingData && (
+                            <div className="flex flex-col items-center gap-4 py-8">
+                                <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
+                                <p className={`text-center ${theme === 'dark' ? 'text-blue-200' : 'text-slate-600'}`}>
+                                    Checking for existing data...
+                                </p>
+                            </div>
+                        )}
+
                         {/* Step 0: Sign-in options */}
-                        <div className={`transition-all duration-300 ${step === 0 ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full hidden'}`}>
+                        <div className={`transition-all duration-300 ${step === 0 && !isCheckingData ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-full hidden'}`}>
                             <div className="space-y-4">
                                 <GoogleSignInButton
                                     onClick={handleGoogleSignIn}
