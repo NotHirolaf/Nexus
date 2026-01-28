@@ -33,24 +33,39 @@ export function AuthProvider({ children }) {
                     const { db } = await import('../lib/firebase');
 
                     const userRef = doc(db, 'users', firebaseUser.uid);
-                    const userSnap = await getDoc(userRef);
 
-                    if (!userSnap.exists()) {
+                    try {
+                        const userSnap = await getDoc(userRef);
+
+                        if (!userSnap.exists()) {
+                            await setDoc(userRef, {
+                                uid: firebaseUser.uid,
+                                email: firebaseUser.email,
+                                displayName: firebaseUser.displayName,
+                                photoURL: firebaseUser.photoURL,
+                                createdAt: serverTimestamp(),
+                                lastLogin: serverTimestamp(),
+                                settings: {
+                                    theme: 'system',
+                                    notifications: true
+                                }
+                            });
+                        } else {
+                            // Update last login
+                            await setDoc(userRef, {
+                                lastLogin: serverTimestamp()
+                            }, { merge: true });
+                        }
+                    } catch (checkError) {
+                        // Fallback logic for offline or failed check
+                        // We use merge: true to ensure the document exists and record the login
+                        // This avoids the 'client is offline' error blocking functionality
+                        console.warn("User existence check failed (likely offline). Using optimistic merge strategy.", checkError);
                         await setDoc(userRef, {
                             uid: firebaseUser.uid,
                             email: firebaseUser.email,
                             displayName: firebaseUser.displayName,
                             photoURL: firebaseUser.photoURL,
-                            createdAt: serverTimestamp(),
-                            lastLogin: serverTimestamp(),
-                            settings: {
-                                theme: 'system',
-                                notifications: true
-                            }
-                        });
-                    } else {
-                        // Update last login
-                        await setDoc(userRef, {
                             lastLogin: serverTimestamp()
                         }, { merge: true });
                     }
