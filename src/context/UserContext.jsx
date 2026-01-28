@@ -13,6 +13,14 @@ export function UserProvider({ children }) {
     const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
     const { loadData, syncData, isAuthenticated } = useDataSync();
 
+    // Save to localStorage immediately whenever user changes
+    useEffect(() => {
+        if (user) {
+            const dataWithTimestamp = { ...user, lastModified: new Date().toISOString() };
+            localStorage.setItem('nexus_user', JSON.stringify(dataWithTimestamp));
+        }
+    }, [user]);
+
     // Sync with cloud data in background after auth is ready
     useEffect(() => {
         const syncWithCloud = async () => {
@@ -22,11 +30,32 @@ export function UserProvider({ children }) {
             try {
                 setIsLoading(true);
                 const cloudData = await loadData('user');
-                if (cloudData) {
+                const localData = localStorage.getItem('nexus_user');
+                const localParsed = localData ? JSON.parse(localData) : null;
+
+                // Compare timestamps - only use cloud if it's actually newer
+                if (cloudData && localParsed) {
+                    const cloudTime = new Date(cloudData.lastModified || 0).getTime();
+                    const localTime = new Date(localParsed.lastModified || 0).getTime();
+
+                    if (cloudTime > localTime) {
+                        console.log('[UserContext] Cloud data is newer, using cloud');
+                        setUser(cloudData);
+                        localStorage.setItem('nexus_user', JSON.stringify(cloudData));
+                    } else {
+                        console.log('[UserContext] Local data is newer, pushing to cloud');
+                        // Local is newer, push it to cloud
+                        await syncData('user', localParsed);
+                    }
+                } else if (cloudData && !localParsed) {
+                    // No local data, use cloud
                     setUser(cloudData);
-                    // Also update localStorage for faster future loads
                     localStorage.setItem('nexus_user', JSON.stringify(cloudData));
+                } else if (localParsed && !cloudData) {
+                    // No cloud data, push local to cloud
+                    await syncData('user', localParsed);
                 }
+
                 setHasLoadedCloud(true);
             } catch (error) {
                 console.error('Error loading user data from cloud:', error);
@@ -35,24 +64,24 @@ export function UserProvider({ children }) {
             }
         };
         syncWithCloud();
-    }, [isAuthenticated, hasLoadedCloud, loadData]);
+    }, [isAuthenticated, hasLoadedCloud, loadData, syncData]);
 
     const saveUser = useCallback(async (name, university, credits, courses) => {
-        const userData = { name, university, credits, courses };
+        const userData = { name, university, credits, courses, lastModified: new Date().toISOString() };
         setUser(userData);
         await syncData('user', userData);
     }, [syncData]);
 
     const updateCourses = useCallback(async (newCourses) => {
         if (!user) return;
-        const updatedUser = { ...user, courses: newCourses };
+        const updatedUser = { ...user, courses: newCourses, lastModified: new Date().toISOString() };
         setUser(updatedUser);
         await syncData('user', updatedUser);
     }, [user, syncData]);
 
     const updateSemesters = useCallback(async (newSemesters) => {
         if (!user) return;
-        const updatedUser = { ...user, semesters: newSemesters };
+        const updatedUser = { ...user, semesters: newSemesters, lastModified: new Date().toISOString() };
         setUser(updatedUser);
         await syncData('user', updatedUser);
     }, [user, syncData]);
