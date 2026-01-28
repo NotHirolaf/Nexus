@@ -3,7 +3,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,8 +20,13 @@ const app = initializeApp(firebaseConfig);
 // Auth instance
 export const auth = getAuth(app);
 
-// Firestore instance
-export const db = getFirestore(app);
+// Firestore instance with offline persistence enabled
+// This caches data locally for faster loads and offline support
+export const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+    })
+});
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
