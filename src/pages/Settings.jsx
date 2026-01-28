@@ -36,7 +36,7 @@ export default function Settings() {
     const handleSignOut = async () => {
         const isConfirmed = await confirm({
             title: 'Sign Out?',
-            message: 'Your data will remain on this device but won\'t sync until you sign back in.',
+            message: 'You will be signed out and returned to the welcome screen. Your data will be cleared from this device.',
             confirmText: 'Sign Out',
             type: 'warning'
         });
@@ -45,6 +45,13 @@ export default function Settings() {
             setIsSigningOut(true);
             try {
                 await signOut();
+                // Clear all local data so user returns to onboarding
+                clearUser();
+                localStorage.removeItem('nexus_tasks');
+                localStorage.removeItem('nexus_flashcards');
+                localStorage.removeItem('nexus_quizzes');
+                localStorage.removeItem('nexus_grades');
+                localStorage.removeItem('nexus_timetable');
                 notify('success', 'Signed out successfully');
             } catch (error) {
                 notify('error', 'Failed to sign out');
