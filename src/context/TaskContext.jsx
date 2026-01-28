@@ -32,6 +32,9 @@ export function TaskProvider({ children }) {
         console.log('[TaskContext] Setting up real-time subscription');
         let isFirstLoad = true;
 
+        // Capture current tasks at subscription time (not reactive)
+        const initialLocalTasks = tasks;
+
         const unsubscribe = subscribeToData('tasks', async (cloudTasks) => {
             console.log('[TaskContext] Received real-time update:', cloudTasks.length, 'tasks');
 
@@ -39,11 +42,11 @@ export function TaskProvider({ children }) {
                 isFirstLoad = false;
 
                 // Smart merge on first load
-                if (cloudTasks.length === 0 && tasks.length > 0) {
+                if (cloudTasks.length === 0 && initialLocalTasks.length > 0) {
                     // Cloud is empty, but we have local data → push to cloud
-                    console.log('[TaskContext] Cloud empty, pushing', tasks.length, 'local tasks to cloud');
+                    console.log('[TaskContext] Cloud empty, pushing', initialLocalTasks.length, 'local tasks to cloud');
                     try {
-                        await Promise.all(tasks.map(task => addTaskDoc(task)));
+                        await Promise.all(initialLocalTasks.map(task => addTaskDoc(task)));
                         console.log('[TaskContext] Successfully pushed local tasks to cloud');
                     } catch (error) {
                         console.error('[TaskContext] Failed to push local tasks:', error);
@@ -65,7 +68,7 @@ export function TaskProvider({ children }) {
             console.log('[TaskContext] Cleaning up real-time subscription');
             unsubscribe();
         };
-    }, [isAuthenticated, subscribeToData, tasks, addTaskDoc]);
+    }, [isAuthenticated, subscribeToData, addTaskDoc]); // Removed 'tasks' to prevent infinite loop
 
 
 
