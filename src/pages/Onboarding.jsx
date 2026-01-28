@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useUser } from '../context/UserContext';
 import { useAuth } from '../context/AuthContext';
 import { useDataSync } from '../context/DataSyncContext';
@@ -7,7 +7,7 @@ import { ArrowRight, ArrowLeft, BookOpen, Plus, X, Cloud, RefreshCw } from 'luci
 import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Onboarding() {
-    const { saveUser } = useUser();
+    const { saveUser, user: profileUser } = useUser();
     const { theme } = useTheme();
     const { signInWithGoogle, isAuthenticated, user: authUser, isLoading: authLoading } = useAuth();
     const { loadData } = useDataSync();
@@ -20,35 +20,52 @@ export default function Onboarding() {
     const [isSigningIn, setIsSigningIn] = useState(false);
     const [signInError, setSignInError] = useState(null);
     const [isCheckingData, setIsCheckingData] = useState(false);
+    const hasCheckedCloud = useRef(false);
+
+    // Watch for successful authentication and check for existing data
+    useEffect(() => {
+        const checkExistingData = async () => {
+            // Only run once after authentication succeeds
+            if (!isAuthenticated || !authUser || hasCheckedCloud.current || authLoading) return;
+
+            hasCheckedCloud.current = true;
+            setIsCheckingData(true);
+
+            try {
+                const existingData = await loadData('user');
+                if (!existingData) {
+                    // No existing data, show onboarding form
+                    if (authUser.displayName) {
+                        setName(authUser.displayName);
+                    }
+                    setStep(1);
+                }
+                // If existingData exists, App.jsx will automatically show Dashboard
+            } catch (error) {
+                console.error('Error checking for existing data:', error);
+                // Still move to step 1 on error
+                if (authUser?.displayName) {
+                    setName(authUser.displayName);
+                }
+                setStep(1);
+            } finally {
+                setIsCheckingData(false);
+            }
+        };
+
+        checkExistingData();
+    }, [isAuthenticated, authUser, authLoading, loadData]);
 
     const handleGoogleSignIn = async () => {
         setIsSigningIn(true);
         setSignInError(null);
+        hasCheckedCloud.current = false; // Reset so useEffect runs after sign-in
         try {
             const result = await signInWithGoogle();
-            if (result.success) {
-                // After successful sign-in, check if user has existing data
-                // The App.jsx will re-render when UserContext loads the cloud data
-                // If cloud data exists, it will automatically show Dashboard
-                // If no cloud data, we need to show onboarding form
-                setIsCheckingData(true);
-
-                // Wait a moment for data sync to complete
-                setTimeout(async () => {
-                    const existingData = await loadData('user');
-                    if (!existingData) {
-                        // No existing data, show onboarding form
-                        if (result.user?.displayName) {
-                            setName(result.user.displayName);
-                        }
-                        setStep(1);
-                    }
-                    // If existingData exists, App.jsx will handle navigation to Dashboard
-                    setIsCheckingData(false);
-                }, 1500);
-            } else {
+            if (!result.success) {
                 setSignInError(result.error || 'Sign in failed');
             }
+            // If success, the useEffect above will handle the rest
         } catch (error) {
             setSignInError(error.message);
         } finally {
