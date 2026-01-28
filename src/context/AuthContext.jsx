@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
 
     // Listen to auth state changes
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
             if (firebaseUser) {
                 // User is signed in
                 setUser({
@@ -26,6 +26,37 @@ export function AuthProvider({ children }) {
                     displayName: firebaseUser.displayName,
                     photoURL: firebaseUser.photoURL
                 });
+
+                // Create user document if it doesn't exist
+                try {
+                    const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore');
+                    const { db } = await import('../lib/firebase');
+
+                    const userRef = doc(db, 'users', firebaseUser.uid);
+                    const userSnap = await getDoc(userRef);
+
+                    if (!userSnap.exists()) {
+                        await setDoc(userRef, {
+                            uid: firebaseUser.uid,
+                            email: firebaseUser.email,
+                            displayName: firebaseUser.displayName,
+                            photoURL: firebaseUser.photoURL,
+                            createdAt: serverTimestamp(),
+                            lastLogin: serverTimestamp(),
+                            settings: {
+                                theme: 'system',
+                                notifications: true
+                            }
+                        });
+                    } else {
+                        // Update last login
+                        await setDoc(userRef, {
+                            lastLogin: serverTimestamp()
+                        }, { merge: true });
+                    }
+                } catch (error) {
+                    console.error("Error creating/updating user document:", error);
+                }
             } else {
                 // User is signed out
                 setUser(null);
