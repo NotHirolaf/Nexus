@@ -30,14 +30,14 @@ const TodoItem = ({ task, onToggle, onDelete }) => (
                     <Calendar className="w-3 h-3" /> {task.date} {task.time ? `at ${formatTimeAMPM(task.time)}` : ''}
                 </span>
                 {task.tag && (
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-opacity-20 ${task.tag === 'School' ? 'text-blue-500 bg-blue-500' :
-                        'text-purple-500 bg-purple-500'
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${task.tag === 'School' ? 'text-white bg-blue-500' :
+                        'text-white bg-purple-500'
                         }`}>
                         {task.tag}
                     </span>
                 )}
                 {task.priority === 'high' && !task.completed && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-red-500 bg-red-500 bg-opacity-20">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white bg-red-500">
                         High Priority
                     </span>
                 )}
