@@ -1,38 +1,81 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useDataSync } from './DataSyncContext';
 
 const TaskContext = createContext();
 
 export function TaskProvider({ children }) {
-    const [tasks, setTasks] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // Initialize from localStorage immediately
+    const [tasks, setTasks] = useState(() => {
+        const saved = localStorage.getItem('nexus_tasks');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch {
+                return [];
+            }
+        }
+        return [];
+    });
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
     const { loadData, syncData, isAuthenticated } = useDataSync();
+    const lastSyncRef = useRef(Date.now());
 
-    // Load tasks on mount and when auth state changes
+    // Save to localStorage immediately on every change
     useEffect(() => {
-        const loadTasks = async () => {
-            setIsLoading(true);
+        localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
+        localStorage.setItem('nexus_tasks_modified', Date.now().toString());
+    }, [tasks]);
+
+    // Sync with cloud in background
+    useEffect(() => {
+        const syncWithCloud = async () => {
+            if (!isAuthenticated || hasLoadedCloud) return;
+
             try {
-                const savedTasks = await loadData('tasks');
-                setTasks(savedTasks || []);
+                setIsLoading(true);
+                const cloudTasks = await loadData('tasks');
+                const localModified = parseInt(localStorage.getItem('nexus_tasks_modified') || '0');
+
+                // Compare - if we have local tasks that were modified after last cloud sync, push them
+                if (cloudTasks && cloudTasks.length > 0) {
+                    // Cloud has data
+                    if (tasks.length === 0) {
+                        // No local tasks, use cloud
+                        setTasks(cloudTasks);
+                    } else if (localModified > lastSyncRef.current) {
+                        // Local was modified, push to cloud
+                        console.log('[TaskContext] Local tasks are newer, pushing to cloud');
+                        await syncData('tasks', tasks);
+                    } else {
+                        // Use cloud data
+                        console.log('[TaskContext] Using cloud tasks');
+                        setTasks(cloudTasks);
+                    }
+                } else if (tasks.length > 0) {
+                    // No cloud data but we have local, push to cloud
+                    console.log('[TaskContext] Pushing local tasks to cloud');
+                    await syncData('tasks', tasks);
+                }
+
+                lastSyncRef.current = Date.now();
+                setHasLoadedCloud(true);
             } catch (error) {
-                console.error('Error loading tasks:', error);
-                const local = localStorage.getItem('nexus_tasks');
-                setTasks(local ? JSON.parse(local) : []);
+                console.error('Error syncing tasks:', error);
             } finally {
                 setIsLoading(false);
             }
         };
-        loadTasks();
-    }, [loadData, isAuthenticated]);
+        syncWithCloud();
+    }, [isAuthenticated, hasLoadedCloud, loadData, syncData, tasks]);
 
-    // Sync tasks when they change (skip initial load)
+    // Sync to cloud when tasks change (after initial load)
     useEffect(() => {
-        if (!isLoading) {
+        if (hasLoadedCloud && isAuthenticated) {
             syncData('tasks', tasks);
         }
-    }, [tasks, isLoading, syncData]);
+    }, [tasks, hasLoadedCloud, isAuthenticated, syncData]);
 
     // Update current time every second
     useEffect(() => {
