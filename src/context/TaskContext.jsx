@@ -25,22 +25,47 @@ export function TaskProvider({ children }) {
         localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
     }, [tasks]);
 
-    // Subscribe to real-time updates from Firestore
+    // Subscribe to real-time updates from Firestore with smart merge
     useEffect(() => {
         if (!isAuthenticated) return;
 
         console.log('[TaskContext] Setting up real-time subscription');
+        let isFirstLoad = true;
 
-        const unsubscribe = subscribeToData('tasks', (cloudTasks) => {
+        const unsubscribe = subscribeToData('tasks', async (cloudTasks) => {
             console.log('[TaskContext] Received real-time update:', cloudTasks.length, 'tasks');
-            setTasks(cloudTasks);
+
+            if (isFirstLoad) {
+                isFirstLoad = false;
+
+                // Smart merge on first load
+                if (cloudTasks.length === 0 && tasks.length > 0) {
+                    // Cloud is empty, but we have local data → push to cloud
+                    console.log('[TaskContext] Cloud empty, pushing', tasks.length, 'local tasks to cloud');
+                    try {
+                        await Promise.all(tasks.map(task => addTaskDoc(task)));
+                        console.log('[TaskContext] Successfully pushed local tasks to cloud');
+                    } catch (error) {
+                        console.error('[TaskContext] Failed to push local tasks:', error);
+                    }
+                    // Keep local data in UI
+                } else if (cloudTasks.length > 0) {
+                    // Cloud has data → use it
+                    console.log('[TaskContext] Loading', cloudTasks.length, 'tasks from cloud');
+                    setTasks(cloudTasks);
+                }
+                // If both empty, do nothing
+            } else {
+                // Subsequent updates: just apply from cloud
+                setTasks(cloudTasks);
+            }
         });
 
         return () => {
             console.log('[TaskContext] Cleaning up real-time subscription');
             unsubscribe();
         };
-    }, [isAuthenticated, subscribeToData]);
+    }, [isAuthenticated, subscribeToData, tasks, addTaskDoc]);
 
 
 
