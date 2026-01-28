@@ -17,65 +17,45 @@ export function TaskProvider({ children }) {
         return [];
     });
     const [isLoading, setIsLoading] = useState(false);
-    const [hasLoadedCloud, setHasLoadedCloud] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
-    const { loadData, syncData, isAuthenticated } = useDataSync();
-    const lastSyncRef = useRef(Date.now());
+    const { syncData, subscribeToData, isAuthenticated } = useDataSync();
+    const isLocalChange = useRef(false);
+    const hasInitializedRef = useRef(false);
 
     // Save to localStorage immediately on every change
     useEffect(() => {
         localStorage.setItem('nexus_tasks', JSON.stringify(tasks));
-        localStorage.setItem('nexus_tasks_modified', Date.now().toString());
     }, [tasks]);
 
-    // Sync with cloud in background
+    // Subscribe to real-time updates from Firestore
     useEffect(() => {
-        const syncWithCloud = async () => {
-            if (!isAuthenticated || hasLoadedCloud) return;
+        if (!isAuthenticated) return;
 
-            try {
-                setIsLoading(true);
-                const cloudTasks = await loadData('tasks');
-                const localModified = parseInt(localStorage.getItem('nexus_tasks_modified') || '0');
+        console.log('[TaskContext] Setting up real-time subscription');
 
-                // Compare - if we have local tasks that were modified after last cloud sync, push them
-                if (cloudTasks && cloudTasks.length > 0) {
-                    // Cloud has data
-                    if (tasks.length === 0) {
-                        // No local tasks, use cloud
-                        setTasks(cloudTasks);
-                    } else if (localModified > lastSyncRef.current) {
-                        // Local was modified, push to cloud
-                        console.log('[TaskContext] Local tasks are newer, pushing to cloud');
-                        await syncData('tasks', tasks);
-                    } else {
-                        // Use cloud data
-                        console.log('[TaskContext] Using cloud tasks');
-                        setTasks(cloudTasks);
-                    }
-                } else if (tasks.length > 0) {
-                    // No cloud data but we have local, push to cloud
-                    console.log('[TaskContext] Pushing local tasks to cloud');
-                    await syncData('tasks', tasks);
-                }
-
-                lastSyncRef.current = Date.now();
-                setHasLoadedCloud(true);
-            } catch (error) {
-                console.error('Error syncing tasks:', error);
-            } finally {
-                setIsLoading(false);
+        const unsubscribe = subscribeToData('tasks', (cloudTasks) => {
+            // Only update if this wasn't triggered by our own local change
+            if (!isLocalChange.current) {
+                console.log('[TaskContext] Received real-time update:', cloudTasks.length, 'tasks');
+                setTasks(cloudTasks);
             }
-        };
-        syncWithCloud();
-    }, [isAuthenticated, hasLoadedCloud, loadData, syncData, tasks]);
+            isLocalChange.current = false;
+        });
 
-    // Sync to cloud when tasks change (after initial load)
+        return () => {
+            console.log('[TaskContext] Cleaning up real-time subscription');
+            unsubscribe();
+        };
+    }, [isAuthenticated, subscribeToData]);
+
+    // Push initial local data to cloud on first auth
     useEffect(() => {
-        if (hasLoadedCloud && isAuthenticated) {
+        if (isAuthenticated && !hasInitializedRef.current && tasks.length > 0) {
+            console.log('[TaskContext] Pushing initial local tasks to cloud');
             syncData('tasks', tasks);
+            hasInitializedRef.current = true;
         }
-    }, [tasks, hasLoadedCloud, isAuthenticated, syncData]);
+    }, [isAuthenticated, tasks, syncData]);
 
     // Update current time every second
     useEffect(() => {
@@ -87,20 +67,40 @@ export function TaskProvider({ children }) {
 
     const addTask = useCallback((task) => {
         const newTask = { ...task, id: Date.now(), completed: false };
-        setTasks(prev => [...prev, newTask]);
-    }, []);
+        isLocalChange.current = true;
+        setTasks(prev => {
+            const updated = [...prev, newTask];
+            if (isAuthenticated) syncData('tasks', updated);
+            return updated;
+        });
+    }, [isAuthenticated, syncData]);
 
     const toggleTask = useCallback((id) => {
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-    }, []);
+        isLocalChange.current = true;
+        setTasks(prev => {
+            const updated = prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            if (isAuthenticated) syncData('tasks', updated);
+            return updated;
+        });
+    }, [isAuthenticated, syncData]);
 
     const deleteTask = useCallback((id) => {
-        setTasks(prev => prev.filter(t => t.id !== id));
-    }, []);
+        isLocalChange.current = true;
+        setTasks(prev => {
+            const updated = prev.filter(t => t.id !== id);
+            if (isAuthenticated) syncData('tasks', updated);
+            return updated;
+        });
+    }, [isAuthenticated, syncData]);
 
     const updateTask = useCallback((id, updates) => {
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
-    }, []);
+        isLocalChange.current = true;
+        setTasks(prev => {
+            const updated = prev.map(t => t.id === id ? { ...t, ...updates } : t);
+            if (isAuthenticated) syncData('tasks', updated);
+            return updated;
+        });
+    }, [isAuthenticated, syncData]);
 
     return (
         <TaskContext.Provider value={{ tasks, isLoading, addTask, toggleTask, deleteTask, updateTask, currentTime }}>

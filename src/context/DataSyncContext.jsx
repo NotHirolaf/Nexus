@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, writeBatch, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
@@ -51,6 +51,40 @@ export function DataSyncProvider({ children }) {
             const local = localStorage.getItem(LOCAL_STORAGE_KEYS[key]);
             return local ? JSON.parse(local) : null;
         }
+    }, [isAuthenticated, user?.uid]);
+
+    // Subscribe to real-time updates - returns unsubscribe function
+    const subscribeToData = useCallback((key, callback) => {
+        if (!isAuthenticated || !user?.uid) {
+            console.log(`[DataSync] Not authenticated, skipping real-time subscription for '${key}'`);
+            return () => { }; // Return no-op unsubscribe
+        }
+
+        console.log(`[DataSync] Subscribing to real-time updates for '${key}'`);
+
+        // Special handling for collections (tasks, flashcards, quizzes)
+        if (key === 'tasks' || key === 'flashcards' || key === 'quizzes') {
+            const collectionRef = collection(db, 'users', user.uid, key);
+            return onSnapshot(collectionRef, (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log(`[DataSync] Real-time update for '${key}': ${data.length} items`);
+                callback(data);
+            }, (error) => {
+                console.error(`[DataSync] Real-time subscription error for '${key}':`, error);
+            });
+        }
+
+        // Regular document data
+        const docRef = doc(db, 'users', user.uid, 'data', key);
+        return onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data().value;
+                console.log(`[DataSync] Real-time update for '${key}'`);
+                callback(data);
+            }
+        }, (error) => {
+            console.error(`[DataSync] Real-time subscription error for '${key}':`, error);
+        });
     }, [isAuthenticated, user?.uid]);
 
     // Save data - to Firestore if authenticated, localStorage otherwise
@@ -159,6 +193,7 @@ export function DataSyncProvider({ children }) {
     const value = {
         loadData,
         syncData,
+        subscribeToData,
         migrateLocalToCloud,
         isSyncing,
         lastSync,
