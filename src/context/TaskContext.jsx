@@ -18,9 +18,7 @@ export function TaskProvider({ children }) {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
-    const { syncData, subscribeToData, isAuthenticated } = useDataSync();
-    const isLocalChange = useRef(false);
-    const hasInitializedRef = useRef(false);
+    const { subscribeToData, addTaskDoc, updateTaskDoc, deleteTaskDoc, isAuthenticated } = useDataSync();
 
     // Save to localStorage immediately on every change
     useEffect(() => {
@@ -34,12 +32,8 @@ export function TaskProvider({ children }) {
         console.log('[TaskContext] Setting up real-time subscription');
 
         const unsubscribe = subscribeToData('tasks', (cloudTasks) => {
-            // Only update if this wasn't triggered by our own local change
-            if (!isLocalChange.current) {
-                console.log('[TaskContext] Received real-time update:', cloudTasks.length, 'tasks');
-                setTasks(cloudTasks);
-            }
-            isLocalChange.current = false;
+            console.log('[TaskContext] Received real-time update:', cloudTasks.length, 'tasks');
+            setTasks(cloudTasks);
         });
 
         return () => {
@@ -48,14 +42,7 @@ export function TaskProvider({ children }) {
         };
     }, [isAuthenticated, subscribeToData]);
 
-    // Push initial local data to cloud on first auth
-    useEffect(() => {
-        if (isAuthenticated && !hasInitializedRef.current && tasks.length > 0) {
-            console.log('[TaskContext] Pushing initial local tasks to cloud');
-            syncData('tasks', tasks);
-            hasInitializedRef.current = true;
-        }
-    }, [isAuthenticated, tasks, syncData]);
+
 
     // Update current time every second
     useEffect(() => {
@@ -67,40 +54,66 @@ export function TaskProvider({ children }) {
 
     const addTask = useCallback((task) => {
         const newTask = { ...task, id: Date.now(), completed: false };
-        isLocalChange.current = true;
-        setTasks(prev => {
-            const updated = [...prev, newTask];
-            if (isAuthenticated) syncData('tasks', updated);
-            return updated;
-        });
-    }, [isAuthenticated, syncData]);
+
+        // Optimistic update: UI instantly, sync in background
+        setTasks(prev => [...prev, newTask]);
+
+        if (isAuthenticated) {
+            addTaskDoc(newTask).catch(error => {
+                console.error('[TaskContext] Failed to add task, rolling back:', error);
+                setTasks(prev => prev.filter(t => t.id !== newTask.id));
+            });
+        }
+    }, [isAuthenticated, addTaskDoc]);
 
     const toggleTask = useCallback((id) => {
-        isLocalChange.current = true;
-        setTasks(prev => {
-            const updated = prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-            if (isAuthenticated) syncData('tasks', updated);
-            return updated;
-        });
-    }, [isAuthenticated, syncData]);
+        const task = tasks.find(t => t.id === id);
+        if (!task) return;
+
+        const newCompleted = !task.completed;
+
+        // Optimistic update: UI instantly, sync in background
+        setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: newCompleted } : t));
+
+        if (isAuthenticated) {
+            updateTaskDoc(id, { ...task, completed: newCompleted }).catch(error => {
+                console.error('[TaskContext] Failed to toggle task, rolling back:', error);
+                setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !newCompleted } : t));
+            });
+        }
+    }, [tasks, isAuthenticated, updateTaskDoc]);
 
     const deleteTask = useCallback((id) => {
-        isLocalChange.current = true;
-        setTasks(prev => {
-            const updated = prev.filter(t => t.id !== id);
-            if (isAuthenticated) syncData('tasks', updated);
-            return updated;
-        });
-    }, [isAuthenticated, syncData]);
+        const deletedTask = tasks.find(t => t.id === id);
+        if (!deletedTask) return;
+
+        // Optimistic update: UI instantly, sync in background
+        setTasks(prev => prev.filter(t => t.id !== id));
+
+        if (isAuthenticated) {
+            deleteTaskDoc(id).catch(error => {
+                console.error('[TaskContext] Failed to delete task, rolling back:', error);
+                setTasks(prev => [...prev, deletedTask]);
+            });
+        }
+    }, [tasks, isAuthenticated, deleteTaskDoc]);
 
     const updateTask = useCallback((id, updates) => {
-        isLocalChange.current = true;
-        setTasks(prev => {
-            const updated = prev.map(t => t.id === id ? { ...t, ...updates } : t);
-            if (isAuthenticated) syncData('tasks', updated);
-            return updated;
-        });
-    }, [isAuthenticated, syncData]);
+        const oldTask = tasks.find(t => t.id === id);
+        if (!oldTask) return;
+
+        const updatedTask = { ...oldTask, ...updates };
+
+        // Optimistic update: UI instantly, sync in background
+        setTasks(prev => prev.map(t => t.id === id ? updatedTask : t));
+
+        if (isAuthenticated) {
+            updateTaskDoc(id, updatedTask).catch(error => {
+                console.error('[TaskContext] Failed to update task, rolling back:', error);
+                setTasks(prev => prev.map(t => t.id === id ? oldTask : t));
+            });
+        }
+    }, [tasks, isAuthenticated, updateTaskDoc]);
 
     return (
         <TaskContext.Provider value={{ tasks, isLoading, addTask, toggleTask, deleteTask, updateTask, currentTime }}>

@@ -87,6 +87,55 @@ export function DataSyncProvider({ children }) {
         });
     }, [isAuthenticated, user?.uid]);
 
+    // Atomic task operations - single writes instead of batch delete+recreate
+    const addTaskDoc = useCallback(async (task) => {
+        if (!isAuthenticated || !user?.uid) {
+            console.log('[DataSync] Not authenticated, skipping task add');
+            return;
+        }
+
+        try {
+            const taskRef = doc(db, 'users', user.uid, 'tasks', String(task.id));
+            await setDoc(taskRef, task);
+            console.log(`[DataSync] Added task ${task.id} atomically`);
+        } catch (error) {
+            console.error('[DataSync] Error adding task:', error);
+            throw error;
+        }
+    }, [isAuthenticated, user?.uid]);
+
+    const updateTaskDoc = useCallback(async (taskId, updates) => {
+        if (!isAuthenticated || !user?.uid) {
+            console.log('[DataSync] Not authenticated, skipping task update');
+            return;
+        }
+
+        try {
+            const taskRef = doc(db, 'users', user.uid, 'tasks', String(taskId));
+            await setDoc(taskRef, updates, { merge: true });
+            console.log(`[DataSync] Updated task ${taskId} atomically`);
+        } catch (error) {
+            console.error('[DataSync] Error updating task:', error);
+            throw error;
+        }
+    }, [isAuthenticated, user?.uid]);
+
+    const deleteTaskDoc = useCallback(async (taskId) => {
+        if (!isAuthenticated || !user?.uid) {
+            console.log('[DataSync] Not authenticated, skipping task delete');
+            return;
+        }
+
+        try {
+            const taskRef = doc(db, 'users', user.uid, 'tasks', String(taskId));
+            await deleteDoc(taskRef);
+            console.log(`[DataSync] Deleted task ${taskId} atomically`);
+        } catch (error) {
+            console.error('[DataSync] Error deleting task:', error);
+            throw error;
+        }
+    }, [isAuthenticated, user?.uid]);
+
     // Save data - to Firestore if authenticated, localStorage otherwise
     const syncData = useCallback(async (key, data) => {
         // Always save to localStorage as backup
@@ -194,6 +243,9 @@ export function DataSyncProvider({ children }) {
         loadData,
         syncData,
         subscribeToData,
+        addTaskDoc,
+        updateTaskDoc,
+        deleteTaskDoc,
         migrateLocalToCloud,
         isSyncing,
         lastSync,
