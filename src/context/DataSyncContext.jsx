@@ -58,19 +58,24 @@ export function DataSyncProvider({ children }) {
         // Always save to localStorage as backup
         localStorage.setItem(LOCAL_STORAGE_KEYS[key], JSON.stringify(data));
 
-        if (isAuthenticated && user?.uid) {
+        // Get current auth user directly from useAuth state
+        const currentUid = user?.uid;
+
+        console.log(`[DataSync] syncData called for '${key}', authenticated: ${isAuthenticated}, uid: ${currentUid}`);
+
+        if (isAuthenticated && currentUid) {
             try {
                 setIsSyncing(true);
 
                 // Special handling for collections (tasks, flashcards, quizzes)
                 if (key === 'tasks' || key === 'flashcards' || key === 'quizzes') {
                     const batch = writeBatch(db);
-                    const collectionRef = collection(db, 'users', user.uid, key);
+                    const collectionRef = collection(db, 'users', currentUid, key);
 
                     // Delete existing documents first
                     const existingDocs = await getDocs(collectionRef);
-                    existingDocs.docs.forEach(doc => {
-                        batch.delete(doc.ref);
+                    existingDocs.docs.forEach(docItem => {
+                        batch.delete(docItem.ref);
                     });
 
                     // Add new documents
@@ -82,18 +87,22 @@ export function DataSyncProvider({ children }) {
                     }
 
                     await batch.commit();
+                    console.log(`[DataSync] Synced collection '${key}' to Firestore for user ${currentUid}`);
                 } else {
                     // Regular document data
-                    const docRef = doc(db, 'users', user.uid, 'data', key);
+                    const docRef = doc(db, 'users', currentUid, 'data', key);
                     await setDoc(docRef, { value: data, updatedAt: new Date().toISOString() });
+                    console.log(`[DataSync] Synced '${key}' to Firestore for user ${currentUid}`);
                 }
 
                 setLastSync(new Date());
             } catch (error) {
-                console.error(`Error syncing ${key} to Firestore:`, error);
+                console.error(`[DataSync] Error syncing ${key} to Firestore:`, error);
             } finally {
                 setIsSyncing(false);
             }
+        } else {
+            console.log(`[DataSync] Saved '${key}' to localStorage only (guest mode or no uid)`);
         }
     }, [isAuthenticated, user?.uid]);
 
