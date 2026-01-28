@@ -89,17 +89,21 @@ export function DataSyncProvider({ children }) {
 
     // Atomic task operations - single writes instead of batch delete+recreate
     const addTaskDoc = useCallback(async (task) => {
+        console.log(`[DataSync] addTaskDoc called for task ${task.id}, auth: ${isAuthenticated}, uid: ${user?.uid}`);
+
         if (!isAuthenticated || !user?.uid) {
-            console.log('[DataSync] Not authenticated, skipping task add');
+            console.warn('[DataSync] ⚠️ Not authenticated or no UID, skipping task add');
             return;
         }
 
         try {
             const taskRef = doc(db, 'users', user.uid, 'tasks', String(task.id));
+            console.log(`[DataSync] Attempting to write to path: users/${user.uid}/tasks/${task.id}`);
             await setDoc(taskRef, task);
-            console.log(`[DataSync] Added task ${task.id} atomically`);
+            console.log(`[DataSync] ✅ Added task ${task.id} atomically to Firestore`);
         } catch (error) {
-            console.error('[DataSync] Error adding task:', error);
+            console.error('[DataSync] ❌ Error adding task:', error);
+            console.error('[DataSync] Error details:', error.code, error.message);
             throw error;
         }
     }, [isAuthenticated, user?.uid]);
